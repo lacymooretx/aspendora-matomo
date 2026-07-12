@@ -12172,6 +12172,9 @@ var __async = (__this, __arguments, generator) => {
     return targets;
   }
   function setupAutoClear(el, delay) {
+    if (el.dataset.autoClearEnabled === "true") {
+      return;
+    }
     let timeoutId;
     let intervalId;
     let lastValue = el.value;
@@ -12187,8 +12190,12 @@ var __async = (__this, __arguments, generator) => {
     const changeListener = () => resetTimer();
     let pageHideListener;
     const teardown = (clearField) => {
-      if (timeoutId) clearTimeout(timeoutId);
-      if (intervalId) clearInterval(intervalId);
+      if (timeoutId !== void 0) {
+        clearTimeout(timeoutId);
+      }
+      if (intervalId !== void 0) {
+        clearInterval(intervalId);
+      }
       el.removeEventListener("input", inputListener);
       el.removeEventListener("change", changeListener);
       if (pageHideListener) {
@@ -12201,7 +12208,14 @@ var __async = (__this, __arguments, generator) => {
         el.value = "";
       }
     };
-    pageHideListener = () => teardown(true);
+    pageHideListener = (event) => {
+      if (event.persisted) {
+        el.value = "";
+        lastValue = "";
+        return;
+      }
+      teardown(true);
+    };
     el.addEventListener("input", inputListener);
     el.addEventListener("change", changeListener);
     el.dataset.autoClearEnabled = "true";
@@ -12229,7 +12243,6 @@ var __async = (__this, __arguments, generator) => {
       targets.forEach((e) => {
         if (e.onUmounted && typeof e.onUmounted.cleanup === "function") {
           e.onUmounted.cleanup();
-          delete e.onUmounted;
         }
       });
     }
