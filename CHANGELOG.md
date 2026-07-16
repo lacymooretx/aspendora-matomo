@@ -18,6 +18,11 @@ The Product Changelog at **[matomo.org/changelog](https://matomo.org/changelog)*
   `warning()`, `error()`, `critical()`, `alert()`, `emergency()`). Plugins that implement this interface directly must add the `: void` return type to these methods. Plugins that obtain the logger through
   dependency injection or extend `Piwik\Log\Logger` are not affected.
 
+### New APIs
+* `Piwik\Http::sendHttpRequest()` and `Piwik\Http::sendHttpRequestBy()` accept a new optional `$validateEgressIp`
+  parameter enabling an SSRF-safe request path (public-IP validation, redirect re-validation, IP pinning). Use it
+  whenever the target URL derives from untrusted input, such as a site's configured URL. Requires curl.
+
 ### HTTP API
 * `API.getBulkRequest` now validates the authentication parameters of each nested request URL against
   the outer request. Within a browser session a nested request may change neither the session flag
