@@ -61,6 +61,11 @@ class CoreVisualizations extends \Piwik\Plugin
         $stylesheets[] = "plugins/CoreVisualizations/vue/src/SingleMetricView/SingleMetricView.less";
         $stylesheets[] = "plugins/CoreVisualizations/vue/src/SparklinesGrid/SparklinesGrid.less";
         $stylesheets[] = "plugins/CoreVisualizations/vue/src/Sparklines/SparklineCard.less";
+        $stylesheets[] = "plugins/CoreVisualizations/vue/src/Sparklines/DateAtom.less";
+        $stylesheets[] = "plugins/CoreVisualizations/vue/src/Sparklines/PeriodColumns.less";
+        $stylesheets[] = "plugins/CoreVisualizations/vue/src/Sparklines/DateComparison.less";
+        $stylesheets[] = "plugins/CoreVisualizations/vue/src/Sparklines/SegmentComparisonCard.less";
+        $stylesheets[] = "plugins/CoreVisualizations/vue/src/Sparklines/SegmentComparisonRow.less";
 
         $stylesheets[] = "plugins/CoreVisualizations/stylesheets/dataTableVisualizations.less";
         $stylesheets[] = "plugins/CoreVisualizations/stylesheets/jqplot.less";
@@ -88,5 +93,6 @@ class CoreVisualizations extends \Piwik\Plugin
         $translationKeys[] = 'General_EvolutionSummaryGeneric';
         $translationKeys[] = 'General_IncompletePeriod';
         $translationKeys[] = 'General_InvalidatedPeriod';
+        $translationKeys[] = 'General_MetricNotAvailableForThisPeriod';
     }
 }

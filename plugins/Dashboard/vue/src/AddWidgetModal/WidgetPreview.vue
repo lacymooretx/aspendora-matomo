@@ -11,17 +11,13 @@
       v-if="previewWidget"
       class="widget"
     >
-      <div
-        class="widgetTop"
-        :title="translate('Dashboard_AddPreviewedWidget')"
-        role="button"
-        tabindex="0"
-        @click="$emit('select', previewWidget.uniqueId)"
-        @keydown.enter.prevent="$emit('select', previewWidget.uniqueId)"
-        @keydown.space.prevent="$emit('select', previewWidget.uniqueId)"
-      >
-        <h3 class="widgetName">{{ translate('Dashboard_WidgetPreview') }}</h3>
-      </div>
+      <ReportHeader
+        context="preview"
+        :title="translate('Dashboard_WidgetPreview')"
+        title-clickable
+        :title-click-hint="translate('Dashboard_AddPreviewedWidget')"
+        @title-click="$emit('select', previewWidget.uniqueId)"
+      />
       <div class="widgetContent">
         <Widget
           :key="previewWidget.uniqueId"
@@ -38,13 +34,14 @@
 import { defineComponent, PropType } from 'vue';
 import {
   Matomo,
+  ReportHeader,
   translate,
   Widget,
   WidgetContainerType,
   WidgetType,
 } from 'CoreHome';
 
-interface WidgetLoadedPayload {
+export interface WidgetLoadedPayload {
   parameters?: { uniqueId?: string } & Record<string, unknown>;
   element?: JQuery;
 }
@@ -52,6 +49,7 @@ interface WidgetLoadedPayload {
 export default defineComponent({
   name: 'WidgetPreview',
   components: {
+    ReportHeader,
     Widget,
   },
   props: {
@@ -114,10 +112,10 @@ export default defineComponent({
       // Without this, nested widgets render as non-widgetized and may show titles again.
       const containerId = widget.parameters?.containerId as string | undefined;
 
-      return widget.widgets!.map((child) => ({
+      return widget.widgets!.map((child: Record<string, unknown>) => ({
         ...child,
         parameters: {
-          ...child.parameters,
+          ...(child.parameters as Record<string, unknown>),
           widget: '1',
           ...(containerId ? { containerId } : {}),
         },

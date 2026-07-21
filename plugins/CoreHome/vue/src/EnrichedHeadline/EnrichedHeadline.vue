@@ -23,7 +23,7 @@
       v-if="editUrl"
       class="title"
       :href="editUrl"
-      :title="translate('CoreHome_ClickToEditX', htmlEntities(actualFeatureName))"
+      :title="translate('CoreHome_ClickToEditX', htmlEntities(actualFeatureName || ''))"
     >
       <slot />
     </a>
@@ -47,7 +47,7 @@
         :title="translate(reportGenerated ? 'General_HelpReport' : 'General_Help')"
       ><span class="icon-info" /></a>
       <div class="ratingIcons" v-if="showRateFeature">
-        <component :title="actualFeatureName" :is="rateFeature"></component>
+        <component :title="actualFeatureName" :is="asComponent(rateFeature)"></component>
       </div>
     </span>
     <div
@@ -70,13 +70,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, Component } from 'vue';
 import Matomo from '../Matomo/Matomo';
 import Periods from '../Periods/Periods';
 import { translateOrDefault } from '../translate';
 import useExternalPluginComponent from '../useExternalPluginComponent';
 
-interface EnrichedHeadlineData {
+export interface EnrichedHeadlineData {
   showIcons: boolean;
   showInlineHelp: boolean;
   actualFeatureName?: string | null;
@@ -148,27 +148,31 @@ export default defineComponent({
     const root = this.$refs.root as HTMLElement;
 
     if (!this.actualInlineHelp) {
-      let helpNode = root.querySelector('.title .inlineHelp');
-      if (!helpNode && root.parentElement?.nextElementSibling) {
-        // hack for reports :(
-        helpNode = (root.parentElement.nextElementSibling as HTMLElement)
-          .querySelector('.reportDocumentation');
-      }
+      const inlineHelpNode = root.querySelector('.title .inlineHelp');
 
-      if (helpNode) {
+      if (inlineHelpNode) {
         // hackish solution to get binded html of p tag within the help node
         // at this point the ng-bind-html is not yet converted into html when report is not
         // initially loaded. Using $compile doesn't work. So get and set it manually
-        const helpDocs = helpNode.getAttribute('data-content')?.trim();
+        const helpDocs = inlineHelpNode.getAttribute('data-content')?.trim();
         if (helpDocs && helpDocs.length) {
           this.actualInlineHelp = `<p>${helpDocs}</p>`;
-          setTimeout(() => helpNode!.remove(), 0);
+          // this alternate inline help node is styled visible, so drop it once consumed
+          setTimeout(() => inlineHelpNode.remove(), 0);
         }
+      } else {
+        // hack for reports :( - the documentation is embedded in the adjacent DataTable
+        this.actualInlineHelp = this.readReportDocumentation();
       }
     }
 
+    // A related report can be loaded into the adjacent DataTable in place, without
+    // re-mounting this headline (see dataTable.js). Re-read the documentation on that
+    // event so the inline help does not keep showing the previous report's text.
+    root.parentElement?.addEventListener('piwik:reportChanged', this.onReportChanged);
+
     if (!this.actualFeatureName) {
-      this.actualFeatureName = root.querySelector('.title')?.textContent;
+      this.actualFeatureName = this.readReportFeatureName();
     }
 
     if (Matomo.period && Matomo.currentDateString) {
@@ -190,9 +194,47 @@ export default defineComponent({
       }
     }
   },
+  beforeUnmount() {
+    const root = this.$refs.root as HTMLElement;
+    root?.parentElement?.removeEventListener('piwik:reportChanged', this.onReportChanged);
+  },
   methods: {
+    // Expose the plugin component to `<component :is>` as a plain Component.
+    asComponent(component: unknown): Component {
+      return component as Component;
+    },
     htmlEntities(v: string) {
       return Matomo.helper.htmlEntities(v);
+    },
+    onReportChanged() {
+      // Re-read the now-current report's documentation after a related report was loaded
+      // into the adjacent DataTable in place.
+      this.actualInlineHelp = this.readReportDocumentation();
+
+      // Also re-read the feature name, otherwise the rate-feature widget would submit
+      // feedback under the previous report's name.
+      const featureName = this.readReportFeatureName();
+      if (featureName) {
+        this.actualFeatureName = featureName;
+      }
+
+      // The new report may have no documentation; close the popup instead of leaving it
+      // open and blank (the info icon that would reopen it is hidden when there is no help).
+      if (!this.actualInlineHelp) {
+        this.showInlineHelp = false;
+      }
+    },
+    readReportFeatureName(): string {
+      const root = this.$refs.root as HTMLElement;
+      return root?.querySelector('.title')?.textContent?.trim() || '';
+    },
+    readReportDocumentation(): string {
+      const root = this.$refs.root as HTMLElement;
+      const helpDocs = root?.parentElement?.nextElementSibling
+        ?.querySelector('.reportDocumentation')
+        ?.getAttribute('data-content')?.trim();
+
+      return helpDocs && helpDocs.length ? `<p>${helpDocs}</p>` : '';
     },
   },
   computed: {
