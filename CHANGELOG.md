@@ -51,6 +51,14 @@ The Product Changelog at **[matomo.org/changelog](https://matomo.org/changelog)*
   path. A temporary `[Tracker] record_accurate_page_view_time` config key (default `1`) is available as a
   kill-switch.
 
+### Tracker HTTP API
+* New optional tracker request parameter `pv_time` (integer, seconds). When a tracker measures focused-only time
+  itself and sends `&pv_time=N`, `Piwik\Plugins\Actions\Tracker\PageViewTimeWriter` trusts that value as the
+  authoritative `time_spent` for the hit — overriding the server-side `now − server_time` calculation. Multiple
+  hits with `pv_time` settle through the same `GREATEST()` rule the rest of the writer uses, so a later smaller
+  value can never shrink an earlier larger observation. Values above `Tracker.visit_standard_length` are capped;
+  negative values / missing param fall back to the server-side calculation.
+
 ## Matomo 5.12.0
 
 ### JavaScript Tracker
