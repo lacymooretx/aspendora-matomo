@@ -189,11 +189,17 @@ var __spreadValues = (a, b) => {
       documentation: String
     },
     computed: {
+      displayTitle() {
+        return CoreHome.ucfirst(this.title);
+      },
       displayValue() {
         return this.formatValue(this.value);
       },
       displaySecondaryValue() {
         return this.formatValue(this.secondaryValue);
+      },
+      displaySecondaryLabel() {
+        return this.stripValuePlaceholder(this.secondaryLabel);
       },
       hasSecondary() {
         return this.secondaryValue !== void 0 && this.secondaryValue !== null && this.secondaryValue !== "";
@@ -203,6 +209,15 @@ var __spreadValues = (a, b) => {
       // Locale-format raw numbers (plain metrics); leave already-formatted strings untouched.
       formatValue(value) {
         return typeof value === "number" ? CoreHome.NumberFormatter.formatNumber(value, 2) : value;
+      },
+      // Remove any printf `%s` value placeholder and tidy whitespace. Some sparkline secondary labels
+      // embed `%s` (e.g. "%s of visits", "by %s unique visitors") — a legacy sprintf convention. The
+      // redesigned card renders the value separately, so the placeholder is dropped, not filled.
+      stripValuePlaceholder(label) {
+        if (!label) {
+          return "";
+        }
+        return label.replace(/%s/g, "").replace(/\s+/g, " ").trim();
       }
     }
   });
@@ -223,12 +238,12 @@ var __spreadValues = (a, b) => {
     var _a;
     const _directive_tooltips = vue.resolveDirective("tooltips");
     return vue.openBlock(), vue.createElementBlock("div", _hoisted_1$c, [
-      _ctx.title ? vue.withDirectives((vue.openBlock(), vue.createElementBlock("div", {
+      _ctx.displayTitle ? vue.withDirectives((vue.openBlock(), vue.createElementBlock("div", {
         key: 0,
         class: vue.normalizeClass(["metricValue__title", { "metricValue__title--documented": !!_ctx.documentation }]),
-        title: _ctx.documentation || _ctx.title
+        title: _ctx.documentation || _ctx.displayTitle
       }, [
-        vue.createTextVNode(vue.toDisplayString(_ctx.title), 1)
+        vue.createTextVNode(vue.toDisplayString(_ctx.displayTitle), 1)
       ], 10, _hoisted_2$9)), [
         [_directive_tooltips, { duration: 200, delay: 200 }]
       ]) : vue.createCommentVNode("", true),
@@ -245,7 +260,7 @@ var __spreadValues = (a, b) => {
       ]),
       _ctx.hasSecondary ? (vue.openBlock(), vue.createElementBlock("div", _hoisted_5$3, [
         vue.createElementVNode("span", _hoisted_6$2, vue.toDisplayString(_ctx.displaySecondaryValue), 1),
-        _ctx.secondaryLabel ? (vue.openBlock(), vue.createElementBlock("span", _hoisted_7$1, vue.toDisplayString(_ctx.secondaryLabel), 1)) : vue.createCommentVNode("", true)
+        _ctx.displaySecondaryLabel ? (vue.openBlock(), vue.createElementBlock("span", _hoisted_7$1, vue.toDisplayString(_ctx.displaySecondaryLabel), 1)) : vue.createCommentVNode("", true)
       ])) : vue.createCommentVNode("", true)
     ]);
   }
@@ -1139,7 +1154,7 @@ var __spreadValues = (a, b) => {
         const metrics = props.sparkline.metrics || {};
         const firstLabel = (_a = (props.sparkline.metricsOrder || [])[0]) != null ? _a : Object.keys(metrics)[0];
         const primary = firstLabel !== void 0 ? (_b = metrics[firstLabel]) == null ? void 0 : _b[0] : void 0;
-        return (primary == null ? void 0 : primary.title) || (primary == null ? void 0 : primary.description) || "";
+        return CoreHome.ucfirst((primary == null ? void 0 : primary.title) || (primary == null ? void 0 : primary.description));
       });
       return {
         metricTitle
@@ -1343,12 +1358,11 @@ var __spreadValues = (a, b) => {
         const label = (_a = ((first == null ? void 0 : first.metricsOrder) || [])[0]) != null ? _a : Object.keys(metrics)[0];
         return label !== void 0 ? (_b = metrics[label]) == null ? void 0 : _b[0] : void 0;
       });
-      const metricTitle = vue.computed(
-        () => {
-          var _a, _b;
-          return ((_a = primaryMetric.value) == null ? void 0 : _a.title) || ((_b = primaryMetric.value) == null ? void 0 : _b.description) || "";
-        }
-      );
+      const metricTitle = vue.computed(() => {
+        var _a, _b;
+        const label = ((_a = primaryMetric.value) == null ? void 0 : _a.title) || ((_b = primaryMetric.value) == null ? void 0 : _b.description);
+        return CoreHome.ucfirst(label);
+      });
       const documentation = vue.computed(
         () => {
           var _a, _b;
