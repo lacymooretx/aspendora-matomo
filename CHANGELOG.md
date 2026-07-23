@@ -6,6 +6,13 @@ The Product Changelog at **[matomo.org/changelog](https://matomo.org/changelog)*
 
 ## Matomo 5.13.0
 
+### New APIs
+* `Piwik\Http::sendHttpRequest()` and `Piwik\Http::sendHttpRequestBy()` accept a new optional `$validateEgressIp`
+  parameter enabling an SSRF-safe request path (public-IP validation, redirect re-validation, IP pinning). Use it
+  whenever the target URL derives from untrusted input, such as a site's configured URL. Requires curl.
+  Installations tracking intranet sites on private addresses can allowlist their ranges via the new
+  `[General] allowed_private_egress_ranges` INI setting.
+
 ### HTTP API
 * `API.getBulkRequest` now validates the authentication parameters of each nested request URL against
   the outer request. Within a browser session a nested request may change neither the session flag
