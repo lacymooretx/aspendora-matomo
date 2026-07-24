@@ -179,9 +179,8 @@ var __spreadValues = (a, b) => {
         type: [String, Number],
         required: true
       },
-      // Optional secondary line, formatted the same way as `value`. Value and label are kept
-      // separate so they can be styled independently (e.g. "9,527" darker, "unique visitors" grey).
-      // Matomo hands these out separately as metric.value + metric.description.
+      // Optional secondary line: value and label, combined into one string for display.
+      // Matomo provides these separately as metric.value + metric.description.
       secondaryValue: [String, Number],
       secondaryLabel: String,
       // Optional metric documentation; when set it is shown as the title tooltip (otherwise the
@@ -190,7 +189,7 @@ var __spreadValues = (a, b) => {
     },
     computed: {
       displayTitle() {
-        return CoreHome.ucfirst(this.title);
+        return CoreHome.ucfirst(this.title, document.documentElement.lang);
       },
       displayValue() {
         return this.formatValue(this.value);
@@ -198,8 +197,17 @@ var __spreadValues = (a, b) => {
       displaySecondaryValue() {
         return this.formatValue(this.secondaryValue);
       },
-      displaySecondaryLabel() {
-        return this.stripValuePlaceholder(this.secondaryLabel);
+      displaySecondaryLine() {
+        const value = this.displaySecondaryValue;
+        const valueText = value === void 0 || value === null ? "" : String(value);
+        const label = this.secondaryLabel;
+        if (!label) {
+          return valueText;
+        }
+        if (/%(?:\d+\$)?s/.test(label)) {
+          return label.replace(/%(?:\d+\$)?s/g, () => valueText);
+        }
+        return `${valueText} ${label}`;
       },
       hasSecondary() {
         return this.secondaryValue !== void 0 && this.secondaryValue !== null && this.secondaryValue !== "";
@@ -209,15 +217,6 @@ var __spreadValues = (a, b) => {
       // Locale-format raw numbers (plain metrics); leave already-formatted strings untouched.
       formatValue(value) {
         return typeof value === "number" ? CoreHome.NumberFormatter.formatNumber(value, 2) : value;
-      },
-      // Remove any printf `%s` value placeholder and tidy whitespace. Some sparkline secondary labels
-      // embed `%s` (e.g. "%s of visits", "by %s unique visitors") — a legacy sprintf convention. The
-      // redesigned card renders the value separately, so the placeholder is dropped, not filled.
-      stripValuePlaceholder(label) {
-        if (!label) {
-          return "";
-        }
-        return label.replace(/%s/g, "").replace(/\s+/g, " ").trim();
       }
     }
   });
@@ -229,11 +228,7 @@ var __spreadValues = (a, b) => {
     key: 1,
     class: "metricValue__secondary"
   };
-  const _hoisted_6$2 = { class: "metricValue__secondaryValue" };
-  const _hoisted_7$1 = {
-    key: 0,
-    class: "metricValue__secondaryLabel"
-  };
+  const _hoisted_6$2 = { class: "metricValue__secondaryLine" };
   function _sfc_render$c(_ctx, _cache, $props, $setup, $data, $options) {
     var _a;
     const _directive_tooltips = vue.resolveDirective("tooltips");
@@ -259,8 +254,7 @@ var __spreadValues = (a, b) => {
         vue.renderSlot(_ctx.$slots, "evolution")
       ]),
       _ctx.hasSecondary ? (vue.openBlock(), vue.createElementBlock("div", _hoisted_5$3, [
-        vue.createElementVNode("span", _hoisted_6$2, vue.toDisplayString(_ctx.displaySecondaryValue), 1),
-        _ctx.displaySecondaryLabel ? (vue.openBlock(), vue.createElementBlock("span", _hoisted_7$1, vue.toDisplayString(_ctx.displaySecondaryLabel), 1)) : vue.createCommentVNode("", true)
+        vue.createElementVNode("span", _hoisted_6$2, vue.toDisplayString(_ctx.displaySecondaryLine), 1)
       ])) : vue.createCommentVNode("", true)
     ]);
   }
@@ -1154,7 +1148,7 @@ var __spreadValues = (a, b) => {
         const metrics = props.sparkline.metrics || {};
         const firstLabel = (_a = (props.sparkline.metricsOrder || [])[0]) != null ? _a : Object.keys(metrics)[0];
         const primary = firstLabel !== void 0 ? (_b = metrics[firstLabel]) == null ? void 0 : _b[0] : void 0;
-        return CoreHome.ucfirst((primary == null ? void 0 : primary.title) || (primary == null ? void 0 : primary.description));
+        return CoreHome.ucfirst((primary == null ? void 0 : primary.title) || (primary == null ? void 0 : primary.description), document.documentElement.lang);
       });
       return {
         metricTitle
@@ -1361,7 +1355,7 @@ var __spreadValues = (a, b) => {
       const metricTitle = vue.computed(() => {
         var _a, _b;
         const label = ((_a = primaryMetric.value) == null ? void 0 : _a.title) || ((_b = primaryMetric.value) == null ? void 0 : _b.description);
-        return CoreHome.ucfirst(label);
+        return CoreHome.ucfirst(label, document.documentElement.lang);
       });
       const documentation = vue.computed(
         () => {
