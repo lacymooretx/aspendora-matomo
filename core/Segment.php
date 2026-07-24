@@ -374,10 +374,12 @@ class Segment
 
     /**
      * Returns `true` if the segment is empty, `false` if otherwise.
+     *
+     * @return bool
      */
     public function isEmpty()
     {
-        return $this->segmentExpression->isEmpty();
+        return (bool) $this->segmentExpression->isEmpty();
     }
 
     /**

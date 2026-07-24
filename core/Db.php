@@ -336,8 +336,7 @@ class Db implements TransactionalDatabaseInterface
      * @param string $sql The SQL query.
      * @param array $parameters Parameters to bind in the query, eg, `array(param1 => value1, param2 => value2)`.
      * @throws \Exception If there is a problem with the SQL or bind parameters.
-     * @return array The fetched rows, each element is an associative array mapping column names
-     *               with column values.
+     * @return list<array<string, scalar|null>> The fetched rows, each an associative array of column => value.
      */
     public static function fetchAll($sql, $parameters = array())
     {
@@ -357,8 +356,7 @@ class Db implements TransactionalDatabaseInterface
      * @param string $sql The SQL query.
      * @param array $parameters Parameters to bind in the query, eg, `array(param1 => value1, param2 => value2)`.
      * @throws \Exception If there is a problem with the SQL or bind parameters.
-     * @return array The fetched row, each element is an associative array mapping column names
-     *               with column values.
+     * @return array<string, scalar|null>|false The fetched row as column => value, or false when the result set is empty.
      */
     public static function fetchRow($sql, $parameters = array())
     {

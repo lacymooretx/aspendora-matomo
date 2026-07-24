@@ -625,13 +625,16 @@ class Request
         }
     }
 
+    /**
+     * @return int
+     */
     public function getIdSite()
     {
         if (isset($this->idSiteCache)) {
             return $this->idSiteCache;
         }
 
-        $idSite = $this->getIdSiteUnverified();
+        $idSite = (int) $this->getIdSiteUnverified();
 
         if ($idSite <= 0) {
             throw new UnexpectedWebsiteFoundException('Invalid idSite: \'' . $idSite . '\'');
@@ -851,6 +854,9 @@ class Request
     }
 
 
+    /**
+     * @return string
+     */
     public function getIp()
     {
         return IPUtils::stringToBinaryIP($this->getIpString());

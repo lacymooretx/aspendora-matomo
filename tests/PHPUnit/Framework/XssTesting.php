@@ -21,6 +21,9 @@ class XssTesting
 {
     public const OPTION_NAME = 'Tests.xssEntries';
 
+    /**
+     * @return string
+     */
     public function forTwig($type, $sanitize = false)
     {
         $n = $this->addXssEntry($type, 'twig');
@@ -29,7 +32,7 @@ class XssTesting
         if ($sanitize) {
             // NOTE: since API\Request does sanitization, API methods do not. when calling them, we must
             // sometimes do sanitization ourselves.
-            $result = Common::sanitizeInputValue($result);
+            $result = (string) Common::sanitizeInputValue($result);
         }
         return $result;
     }
@@ -42,13 +45,16 @@ class XssTesting
         return $this->forVueJs($type, $sanitize);
     }
 
+    /**
+     * @return string
+     */
     public function forVueJs($type, $sanitize = false)
     {
         $n = $this->addXssEntry($type, 'vuejs');
 
         $result = "{{_Vue.h.constructor`_x($n)`()}}";
         if ($sanitize) {
-            $result = Common::sanitizeInputValue($result);
+            $result = (string) Common::sanitizeInputValue($result);
         }
         return $result;
     }
