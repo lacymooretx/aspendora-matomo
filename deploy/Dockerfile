@@ -16,6 +16,10 @@ FROM matomo:5-apache
 RUN rm -rf /usr/src/matomo
 COPY --from=vendor --chown=www-data:www-data /src /usr/src/matomo
 
+# Blocker-safe alias: the rrweb recorder ships as /vendor.js (loaded by bundle.js from the
+# bland first-party hub domains; "rrweb" in a URL would trip content-blocker filename rules)
+RUN cp /usr/src/matomo/plugins/AspendoraSessionRecording/assets/rrweb.min.js /usr/src/matomo/vendor.js
+
 # Pristine config (no config.ini.php in git source) for the startup re-sync
 RUN cp -a /usr/src/matomo/config /usr/src/matomo-config
 COPY deploy/docker-entrypoint-aspendora.sh /docker-entrypoint-aspendora.sh

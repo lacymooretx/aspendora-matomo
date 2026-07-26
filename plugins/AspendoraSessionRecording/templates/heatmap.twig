@@ -1,0 +1,49 @@
+{% extends 'admin.twig' %}
+
+{% block content %}
+<div class="card">
+  <div class="card-content">
+    <h2 class="card-title">Click Map</h2>
+    <form method="get" action="index.php">
+      <input type="hidden" name="module" value="AspendoraSessionRecording"/>
+      <input type="hidden" name="action" value="heatmap"/>
+      <input type="hidden" name="idSite" value="{{ reqIdSite }}"/>
+      <input type="hidden" name="period" value="{{ reqPeriod }}"/>
+      <input type="hidden" name="date" value="{{ reqDate }}"/>
+      <label>Page:
+        <select name="pageUrl" onchange="this.form.submit()">
+          <option value="">(choose a page)</option>
+          {% for u in urls %}
+            <option value="{{ u.url }}" {% if u.url == pageUrl %}selected{% endif %}>{{ u.url }} ({{ u.n }} clicks)</option>
+          {% endfor %}
+        </select>
+      </label>
+    </form>
+    {% if pageUrl %}
+      <p>Click density for <strong>{{ pageUrl }}</strong> — X = page width %, Y = pixels down the page. Darker = more clicks.</p>
+      <canvas id="aspHeat" width="1000" style="border:1px solid #ddd;background:#fafafa"></canvas>
+      <script>
+        (function () {
+          var clicks = {{ clicksJson|raw }};
+          var c = document.getElementById('aspHeat');
+          var maxY = 1000;
+          clicks.forEach(function (p) { if (p.y_px > maxY) { maxY = p.y_px; } });
+          var scale = Math.min(1, 3000 / maxY);
+          c.height = Math.min(3000, Math.ceil(maxY * scale) + 20);
+          var ctx = c.getContext('2d');
+          ctx.fillStyle = 'rgba(212, 41, 31, 0.25)';
+          clicks.forEach(function (p) {
+            ctx.beginPath();
+            ctx.arc(10 * p.x_pct * (c.width / 1000), p.y_px * scale, 6, 0, 2 * Math.PI);
+            ctx.fill();
+          });
+          if (!clicks.length) {
+            ctx.fillStyle = '#666';
+            ctx.fillText('No clicks recorded for this page yet.', 20, 30);
+          }
+        })();
+      </script>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

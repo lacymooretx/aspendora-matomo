@@ -1,0 +1,11 @@
+{
+    "AspendoraSessionRecording": {
+        "SessionRecordings": "Session Recordings",
+        "ClickMap": "Click Map",
+        "Engagement": "Page Engagement",
+        "ScrollDepth": "Scroll depth",
+        "ClickSummary": "Clicks by page",
+        "ScrollDocs": "How far visitors scroll on each page (max depth per tracked view, beaconed on page exit).",
+        "ClickDocs": "Click volume per page. The visual click map (dot overlay) is under Administration → Diagnostics → Click Map; session replays under Session Recordings."
+    }
+}

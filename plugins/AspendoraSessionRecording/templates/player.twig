@@ -1,0 +1,30 @@
+{% extends 'admin.twig' %}
+
+{% block content %}
+<div class="card">
+  <div class="card-content">
+    <h2 class="card-title">Replay {{ recKey }}</h2>
+    <p><a href="index.php?module=AspendoraSessionRecording&action=index">← back to recordings</a></p>
+    <link rel="stylesheet" href="plugins/AspendoraSessionRecording/assets/rrweb-player.min.css"/>
+    <div id="aspPlayer"></div>
+    <script src="plugins/AspendoraSessionRecording/assets/rrweb-player.min.js"></script>
+    <script>
+      fetch('index.php?module=AspendoraSessionRecording&action=events&recKey={{ recKey }}')
+        .then(function (r) { return r.json(); })
+        .then(function (events) {
+          if (!events.length) {
+            document.getElementById('aspPlayer').innerHTML = '<p><em>No events stored for this recording.</em></p>';
+            return;
+          }
+          new rrwebPlayer({
+            target: document.getElementById('aspPlayer'),
+            props: { events: events, width: 1000, height: 600, autoPlay: true, skipInactive: true }
+          });
+        })
+        .catch(function (e) {
+          document.getElementById('aspPlayer').innerHTML = '<p><em>Failed to load events: ' + e + '</em></p>';
+        });
+    </script>
+  </div>
+</div>
+{% endblock %}

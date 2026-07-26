@@ -1,0 +1,9 @@
+{
+    "name": "AspendoraSessionRecording",
+    "description": "Session replay (rrweb, inputs masked) plus click/scroll heatmap data collection and reports. Original Aspendora plugin; rrweb is MIT-licensed (see assets/RRWEB-LICENSE).",
+    "version": "1.0.0",
+    "theme": false,
+    "require": { "matomo": ">=5.0.0-b1,<6.0.0-b1" },
+    "authors": [{ "name": "Aspendora Technologies", "homepage": "https://www.aspendora.com" }],
+    "license": "GPL v3+"
+}

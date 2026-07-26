@@ -1,0 +1,8 @@
+{
+    "AspendoraMediaAnalytics": {
+        "Media": "Media",
+        "MediaEngagement": "Media engagement",
+        "MediaTitle": "Media",
+        "Documentation": "HTML5 video/audio engagement tracked by the site bundle: plays, 50% milestone, finishes, completion rate, and total watch time. Watch time accumulates from periodic 'time' events while media plays."
+    }
+}

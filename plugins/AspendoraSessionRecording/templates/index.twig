@@ -1,0 +1,28 @@
+{% extends 'admin.twig' %}
+
+{% block content %}
+<div class="card">
+  <div class="card-content">
+    <h2 class="card-title">Session Recordings</h2>
+    <p>Last 200 recorded page views (rrweb, inputs masked, 60-day retention). Click Replay to watch.</p>
+    <table class="entityTable">
+      <thead><tr><th>Started (UTC)</th><th>Site</th><th>Page</th><th>Duration</th><th>Events</th><th>Browser</th><th></th></tr></thead>
+      <tbody>
+      {% for r in recordings %}
+        <tr>
+          <td>{{ r.started_at }}</td>
+          <td>{{ r.idsite }}</td>
+          <td style="max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.url }}</td>
+          <td>{{ (r.duration_ms / 1000)|round(1) }}s</td>
+          <td>{{ r.nb_events }} ({{ r.chunks }} chunks)</td>
+          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><small>{{ r.ua }}</small></td>
+          <td><a href="index.php?module=AspendoraSessionRecording&action=player&recKey={{ r.rec_key }}">▶ Replay</a></td>
+        </tr>
+      {% else %}
+        <tr><td colspan="7">No recordings yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+/* Aspendora white-label: hide upsell/promo chrome for client-facing use. */
+.marketplace-max-sites-reached,
+.pluginsSummary .promo,
+#notificationContainer .notification-info a[href*="matomo.org"],
+.widget-promo,
+.piwik-promo,
+.matomo-promo,
+li[data-menu-id="Feedback"],
+a.item[href*="shop.matomo.org"],
+.rateFeature,
+#header_message.update_available,
+.footerIcons { display: none !important; }
