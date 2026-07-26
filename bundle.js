@@ -1,6 +1,7 @@
 /*!
- * Aspendora site bundle: ad click-id capture, media analytics, click/scroll heatmap
- * beacons, and sampled session recording (rrweb, MIT — inputs masked).
+ * Aspendora site bundle: known-visitor identity capture, ad click-id capture,
+ * media analytics, click/scroll heatmap beacons, and sampled session recording
+ * (rrweb, MIT — inputs masked).
  * Page must set: window.__asp = { site:'1', hub:'https://hub.example.com/', key:'...',
  *                                 rec:1, sample:100 }
  * Served from the first-party hub domain; endpoint + filenames deliberately bland.
@@ -34,6 +35,42 @@
             if (v && v.length > 8 && v.length < 200) { ev('AdClick', p, v); }
         });
     } catch (e) {}
+
+    // ---- Identity: turn anonymous visitors into known visitors
+    // Sources, by priority: decorated email-campaign link (?asp_c=<GHL contact id>),
+    // previously stored id, or an email typed into any submitted form (GF included).
+    // The stored id follows the visitor across pages/sessions on this device;
+    // Matomo's User ID then stitches all their visits into one profile.
+    function applyId(uid) {
+        if (window._paq) { _paq.push(['setUserId', uid]); }
+    }
+    function storeId(uid) {
+        var prev = null;
+        try { prev = localStorage.getItem('asp_uid'); localStorage.setItem('asp_uid', uid); } catch (e) {}
+        applyId(uid);
+        // newly learned identity: send one ping so this visit carries the user id
+        if (uid !== prev && window._paq) { _paq.push(['ping']); }
+    }
+    function initIdentity() {
+        try {
+            var c = new URLSearchParams(location.search).get('asp_c');
+            if (c && /^[A-Za-z0-9]{8,40}$/.test(c)) {
+                storeId('ghl:' + c);
+            } else {
+                var saved = localStorage.getItem('asp_uid');
+                if (saved) { applyId(saved); }
+            }
+        } catch (e) {}
+        document.addEventListener('submit', function (e) {
+            var f = e.target;
+            if (!f || !f.querySelectorAll) { return; }
+            var inputs = f.querySelectorAll('input[type=email], input[name*=email i]');
+            for (var i = 0; i < inputs.length; i++) {
+                var v = (inputs[i].value || '').trim().toLowerCase();
+                if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) { storeId(v); break; }
+            }
+        }, { capture: true, passive: true });
+    }
 
     // ---- Media analytics (HTML5 video/audio)
     function mediaName(el) {
@@ -130,6 +167,6 @@
         document.head.appendChild(s);
     }
 
-    function init() { initMedia(); initHeat(); initRec(); }
+    function init() { initIdentity(); initMedia(); initHeat(); initRec(); }
     if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
 })();

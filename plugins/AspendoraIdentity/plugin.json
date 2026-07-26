@@ -1,0 +1,11 @@
+{
+    "name": "AspendoraIdentity",
+    "description": "Turns anonymous visitors into known visitors: identity graph keyed on Matomo User ID, GoHighLevel CRM enrichment, lead scoring, and hot-lead tag push-back. Original Aspendora plugin.",
+    "version": "1.0.0",
+    "theme": false,
+    "require": {
+        "matomo": ">=5.0.0-b1,<6.0.0-b1"
+    },
+    "authors": [{ "name": "Aspendora Technologies", "homepage": "https://www.aspendora.com" }],
+    "license": "GPL v3+"
+}

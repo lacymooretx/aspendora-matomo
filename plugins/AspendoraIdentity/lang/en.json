@@ -1,0 +1,12 @@
+{
+    "AspendoraIdentity": {
+        "KnownVisitors": "Known Visitors",
+        "Visitor": "Visitor",
+        "Email": "Email",
+        "Company": "Company",
+        "LeadScore": "Lead Score",
+        "HotIntent": "Hot Intent",
+        "LastSeen": "Last Seen",
+        "ReportDocumentation": "Visitors identified by email (form submits, email-campaign clicks, logins), enriched from GoHighLevel and scored 0–100. Score: up to 40 for visits, up to 40 for page views, +15 for activity in the last 7 days, +25 for viewing high-intent pages in the last 30 days. Leads at or above the hot threshold are tagged 'website-hot-lead' in GoHighLevel."
+    }
+}
