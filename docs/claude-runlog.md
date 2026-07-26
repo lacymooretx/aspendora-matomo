@@ -61,3 +61,19 @@ app-build-progress.md; Wave 6 = reverse-IP company reports + alerts.
      docker-apps:/opt/services/aspendora-matomo/.env, then
      `docker compose … up -d matomo-web` to pick up env.
   2. Decorate GHL email-template links with `?asp_c={{contact.id}}`.
+
+## 2026-07-26 — Wave 6: Companies + alerts
+
+- [x] Built `plugins/AspendoraCompanies` (8 files): OrgPrefix VisitDimension
+  (log_visit column `aspendora_org_prefix`, tracking-time /24 capture, no I/O),
+  Resolver (rDNS + optional IPinfo, ISP/hosting keyword blocklist, 200/run cap),
+  Alerts (daily digest email via Piwik\Mail to ASPENDORA_ALERT_EMAIL — hot leads
+  from AspendoraIdentity [class_exists-guarded] + non-ISP company visits last
+  24h), Tasks (daily), API + GetCompanies report (Visitors → Companies),
+  `aspendora-companies:resolve [--send-digest]`, lang. Collation-inherit
+  pattern reused from the Wave 5 fix.
+- [x] Verified locally: php -l clean on all 8; prefixForIp edge cases
+  (private → null, invalid → null, IPv4 → /24, IPv6 → /48) pass in php:8.2-cli;
+  `addNoValueOption` + VisitDimension auto-migration confirmed in core.
+- [x] Compose: added ASPENDORA_IPINFO_TOKEN / ASPENDORA_ALERT_EMAIL passthrough.
+- [ ] Deploy + smoke test (this session).

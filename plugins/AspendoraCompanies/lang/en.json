@@ -1,0 +1,9 @@
+{
+    "AspendoraCompanies": {
+        "Companies": "Companies",
+        "Company": "Company",
+        "LastSeen": "Last Seen",
+        "NetworkPrefix": "Network Prefix",
+        "ReportDocumentation": "Organizations whose networks visited the site, resolved nightly from the visitor's /24 (IPv6 /48) network prefix via reverse DNS and optionally IPinfo. Residential ISPs, mobile carriers, and cloud/hosting providers are filtered out. Identification is probabilistic — it tells you a company's network visited, not who."
+    }
+}

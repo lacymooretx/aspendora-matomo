@@ -48,8 +48,30 @@ GoHighLevel CRM enrichment, lead scoring, hot-lead push-back.
 5. Smoke test: submit a GF form, then `./console aspendora-identity:sync` and
    check the Known Visitors report.
 
+## Wave 6 — Company identification + alerts (2026-07-26)
+
+**Goal:** identify companies visiting the sites (reverse-IP, probabilistic) and
+surface hot activity daily.
+
+**Deliverables:**
+
+- [x] `plugins/AspendoraCompanies` — `OrgPrefix` VisitDimension captures /24
+      (IPv6 /48) network prefix at tracking time (stored IPs are anonymized;
+      pure string math, no tracker I/O; private ranges skipped). Nightly
+      resolver: rDNS + optional IPinfo → org, ISP/hosting keyword filter.
+      Companies report under Visitors. Daily hot-activity email digest
+      (hot leads from AspendoraIdentity + new company visits) to
+      `ASPENDORA_ALERT_EMAIL`. Console: `aspendora-companies:resolve
+      [--send-digest]`.
+- [x] Verification: PHP lint clean (8 files), prefix derivation edge-cases
+      tested (private/invalid → null, IPv4 /24, IPv6 /48), deployed + smoke
+      tested (see runlog).
+
+**Notes:** company identification is probabilistic — it names the network's
+organization, not a person. Only /24 prefixes are stored, coarser than a full
+IP. ISP/hosting/cloud networks are flagged and excluded from reports.
+
 ## Planned next waves (approved roadmap, not started)
 
-- **Wave 6** — Reverse-IP company identification, lead scoring refinements, alerts
 - **Wave 7** — Offline ad conversions (GHL won → gclid upload), Funnels, A/B testing
 - **Wave 8** — AI insights digest, JS error tracking, client-facing report polish

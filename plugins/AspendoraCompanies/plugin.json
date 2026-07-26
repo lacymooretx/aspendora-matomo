@@ -1,0 +1,11 @@
+{
+    "name": "AspendoraCompanies",
+    "description": "B2B company identification from visitor networks: captures the /24 (or IPv6 /48) prefix at tracking time, resolves it nightly to an organization (rDNS + optional IPinfo), filters out ISPs/hosting, and reports companies visiting the site. Includes a daily hot-activity email digest. Original Aspendora plugin.",
+    "version": "1.0.0",
+    "theme": false,
+    "require": {
+        "matomo": ">=5.0.0-b1,<6.0.0-b1"
+    },
+    "authors": [{ "name": "Aspendora Technologies", "homepage": "https://www.aspendora.com" }],
+    "license": "GPL v3+"
+}

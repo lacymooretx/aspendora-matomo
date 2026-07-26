@@ -21,6 +21,15 @@ Optional (non-secret) tuning:
 Validate: `./console aspendora-identity:sync` on the container — logs a warning
 if credentials are missing, errors if the token/scopes are wrong.
 
+## AspendoraCompanies (Wave 6)
+
+| Variable | Purpose | Where to get it | Rotation |
+|---|---|---|---|
+| `ASPENDORA_IPINFO_TOKEN` | Optional ipinfo.io token for network→organization lookups (falls back to reverse DNS only) | https://ipinfo.io/signup (free tier: 50k req/mo) | Rotate on suspicion; low sensitivity |
+
+Non-secret: `ASPENDORA_ALERT_EMAIL` — recipient of the daily hot-activity digest
+(skipped when unset).
+
 ## AspendoraSearchKeywords (Wave 1)
 
 | Variable | Purpose |
