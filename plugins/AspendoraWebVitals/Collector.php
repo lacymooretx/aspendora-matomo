@@ -5,7 +5,8 @@ namespace Piwik\Plugins\AspendoraWebVitals;
 use Piwik\Common;
 use Piwik\Db;
 use Piwik\Log\LoggerInterface;
-use Piwik\Site;
+use Piwik\Access;
+use Piwik\Plugins\SitesManager\API as SitesManagerAPI;
 
 class Collector
 {
@@ -24,8 +25,11 @@ class Collector
             return;
         }
         $day = date('Y-m-d');
-        foreach (Site::getSites() as $site) {
-            $idSite = (int) $site['idsite'];
+        $siteIds = Access::doAsSuperUser(function () {
+            return SitesManagerAPI::getInstance()->getAllSitesId();
+        });
+        foreach ($siteIds as $siteId) {
+            $idSite = (int) $siteId;
             foreach (AspendoraWebVitals::getUrlsForSite($idSite) as $url) {
                 foreach (['mobile', 'desktop'] as $strategy) {
                     try {

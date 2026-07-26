@@ -5,7 +5,8 @@ namespace Piwik\Plugins\AspendoraSearchKeywords;
 use Piwik\Common;
 use Piwik\Db;
 use Piwik\Log\LoggerInterface;
-use Piwik\Site;
+use Piwik\Access;
+use Piwik\Plugins\SitesManager\API as SitesManagerAPI;
 
 class Importer
 {
@@ -30,8 +31,11 @@ class Importer
         }
         $end = date('Y-m-d', strtotime('-3 days'));
         $start = date('Y-m-d', strtotime("-" . ($days + 2) . " days"));
-        foreach (Site::getSites() as $site) {
-            $idSite = (int) $site['idsite'];
+        $siteIds = Access::doAsSuperUser(function () {
+            return SitesManagerAPI::getInstance()->getAllSitesId();
+        });
+        foreach ($siteIds as $siteId) {
+            $idSite = (int) $siteId;
             $property = AspendoraSearchKeywords::getPropertyForSite($idSite);
             if (!$property) {
                 continue;
