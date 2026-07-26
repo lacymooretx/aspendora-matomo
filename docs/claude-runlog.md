@@ -76,4 +76,12 @@ app-build-progress.md; Wave 6 = reverse-IP company reports + alerts.
   (private → null, invalid → null, IPv4 → /24, IPv6 → /48) pass in php:8.2-cli;
   `addNoValueOption` + VisitDimension auto-migration confirmed in core.
 - [x] Compose: added ASPENDORA_IPINFO_TOKEN / ASPENDORA_ALERT_EMAIL passthrough.
-- [ ] Deploy + smoke test (this session).
+- [x] Deployed: rsync → build → recreate (renew-anon-volumes) → activate.
+  **Gotcha learned:** VisitDimension columns are NOT added by plugin:activate —
+  required `./console core:update --yes` (added `aspendora_org_prefix` to
+  log_visit). Resolver then runs clean; prefixes populate for new visits only.
+- [x] Smoke tested: Companies API returns [] (expected pre-traffic), report
+  metadata lists both "Known Visitors" and "Companies". Host .env got
+  ASPENDORA_ALERT_EMAIL=lacy@aspendora.com.
+- [x] IT Glue: appended Wave 5–6 section to "Aspendora Analytics & CRM Stack —
+  Matomo + EspoCRM Runbook" (doc 24419246, org Aspendora Technologies LLC).
