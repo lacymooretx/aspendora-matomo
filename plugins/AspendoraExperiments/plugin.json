@@ -1,0 +1,11 @@
+{
+    "name": "AspendoraExperiments",
+    "description": "A/B test reporting: splits visits and conversions by experiment variant (assigned client-side by bundle.js, tracked as Experiment events) with conversion rates and a two-proportion z-test vs the first variant. Original Aspendora plugin.",
+    "version": "1.0.0",
+    "theme": false,
+    "require": {
+        "matomo": ">=5.0.0-b1,<6.0.0-b1"
+    },
+    "authors": [{ "name": "Aspendora Technologies", "homepage": "https://www.aspendora.com" }],
+    "license": "GPL v3+"
+}

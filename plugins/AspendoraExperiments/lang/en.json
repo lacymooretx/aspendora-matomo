@@ -1,0 +1,10 @@
+{
+    "AspendoraExperiments": {
+        "Experiments": "A/B Tests",
+        "Variant": "Experiment — variant",
+        "Conversions": "Conversions",
+        "ConversionRate": "Conversion rate %",
+        "Confidence": "Significance",
+        "ReportDocumentation": "Visits and conversions split by experiment variant. Variants are assigned client-side by bundle.js (window.__asp.exp config, persistent per device, exposed as html class asp-exp-<name>-<variant>) and tracked as Experiment events. Conversions = goal conversions plus the AspendoraAttribution conversion events. Significance is a two-proportion z-test against the first (alphabetical) variant — treat as directional until samples are large."
+    }
+}

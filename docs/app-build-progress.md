@@ -71,7 +71,29 @@ surface hot activity daily.
 organization, not a person. Only /24 prefixes are stored, coarser than a full
 IP. ISP/hosting/cloud networks are flagged and excluded from reports.
 
+## Wave 7 — Offline conversions, Funnels, A/B testing (2026-07-26)
+
+**Deliverables:**
+
+- [x] **AspendoraAdExport 1.1.0** — daily import of won GHL opportunities
+      (`GET /opportunities/search`, snake_case `location_id`, needs the
+      `opportunities.readonly` scope on the PIT), matched to the identity's
+      most recent ad click id within 90 days; stored in
+      `aspendora_offline_conversions`; new `getGoogleAdsSalesExport` /
+      `getMicrosoftAdsSalesExport` APIs emit upload-ready CSV with real
+      revenue. Console: `aspendora-adexport:import-won`. Table added via
+      `Updates/1.1.0.php` (runs with core:update).
+- [x] **AspendoraFunnels** — ordered multi-step URL funnels over per-visit
+      pageview sequences (reuses UsersFlow PathLoader); definitions in
+      `ASPENDORA_FUNNELS` env JSON (default Contact funnel);
+      Behaviour → Funnels: reached / step % / overall % / drop-off.
+- [x] **AspendoraExperiments + bundle.js** — persistent client-side variant
+      assignment (`window.__asp.exp`, localStorage, html class
+      `asp-exp-<name>-<variant>`, Experiment event); Behaviour → A/B Tests:
+      visits/conversions/rate per variant + two-proportion z-test significance.
+- [x] Verification: lint clean, funnel matcher + z-test behavioral tests pass,
+      deployed + smoke tested (see runlog).
+
 ## Planned next waves (approved roadmap, not started)
 
-- **Wave 7** — Offline ad conversions (GHL won → gclid upload), Funnels, A/B testing
 - **Wave 8** — AI insights digest, JS error tracking, client-facing report polish

@@ -72,6 +72,29 @@
         }, { capture: true, passive: true });
     }
 
+    // ---- A/B experiments
+    // Page config: window.__asp.exp = [{name:'hero-cta', variants:['control','alt']}]
+    // Assignment is persistent per device (localStorage), exposed as an html class
+    // asp-exp-<name>-<variant> for the page's CSS/JS to act on, and tracked once
+    // per page as an Experiment event so reports can split conversions by variant.
+    function initExperiments() {
+        var exps = cfg.exp;
+        if (!exps || !exps.length) { return; }
+        var store = {};
+        try { store = JSON.parse(localStorage.getItem('asp_exp') || '{}') || {}; } catch (e) {}
+        exps.forEach(function (ex) {
+            if (!ex || !ex.name || !ex.variants || !ex.variants.length) { return; }
+            var v = store[ex.name];
+            if (!v || ex.variants.indexOf(v) === -1) {
+                v = ex.variants[Math.floor(Math.random() * ex.variants.length)];
+                store[ex.name] = v;
+            }
+            document.documentElement.classList.add('asp-exp-' + ex.name + '-' + v);
+            ev('Experiment', ex.name, v);
+        });
+        try { localStorage.setItem('asp_exp', JSON.stringify(store)); } catch (e) {}
+    }
+
     // ---- Media analytics (HTML5 video/audio)
     function mediaName(el) {
         return (el.getAttribute('title') || el.currentSrc || el.src || 'unknown').split('?')[0].slice(-120);
@@ -167,6 +190,6 @@
         document.head.appendChild(s);
     }
 
-    function init() { initIdentity(); initMedia(); initHeat(); initRec(); }
+    function init() { initExperiments(); initIdentity(); initMedia(); initHeat(); initRec(); }
     if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
 })();

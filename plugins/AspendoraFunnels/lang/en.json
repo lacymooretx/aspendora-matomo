@@ -1,0 +1,11 @@
+{
+    "AspendoraFunnels": {
+        "Funnels": "Funnels",
+        "Step": "Funnel step",
+        "Reached": "Reached",
+        "StepRate": "Step conversion %",
+        "FunnelRate": "Overall %",
+        "Dropped": "Dropped off",
+        "ReportDocumentation": "Ordered multi-step funnels computed from each visit's pageview sequence — a visit reaches a step only after matching all earlier steps in order within the same visit. Definitions come from the ASPENDORA_FUNNELS environment variable (JSON: name, optional idsite, steps with label + PCRE pattern matched against page paths)."
+    }
+}

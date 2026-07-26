@@ -85,3 +85,24 @@ app-build-progress.md; Wave 6 = reverse-IP company reports + alerts.
   ASPENDORA_ALERT_EMAIL=lacy@aspendora.com.
 - [x] IT Glue: appended Wave 5–6 section to "Aspendora Analytics & CRM Stack —
   Matomo + EspoCRM Runbook" (doc 24419246, org Aspendora Technologies LLC).
+
+## 2026-07-26 — Wave 7: Offline conversions, Funnels, A/B testing
+
+- [x] **AspendoraAdExport → 1.1.0**: WonOpportunities importer (GHL
+  /opportunities/search, status=won, paginated ≤20 pages; identity match =
+  contact email OR ghl:<id> against log_visit.user_id; most recent AdClick
+  event ≤ won time within 90d), `aspendora_offline_conversions` table
+  (collation-inherit; created via Updates/1.1.0.php since the plugin is
+  already installed), sales-export APIs (Google/Microsoft CSV with revenue),
+  daily task + `aspendora-adexport:import-won`. PIT needs
+  opportunities.readonly added (secrets-required.md updated).
+- [x] **AspendoraFunnels**: env-defined (ASPENDORA_FUNNELS JSON) ordered-step
+  funnels over PathLoader sequences; Behaviour → Funnels.
+- [x] **AspendoraExperiments** + bundle.js initExperiments(): persistent
+  variant assignment, html class, Experiment event; report with per-variant
+  conversion rate + two-proportion z significance; conversions = goals +
+  AspendoraAttribution event categories.
+- [x] **Verify (local)**: php -l clean on all three plugins;
+  funnel-matcher harness → [3,2,1] as expected; z-test math checked (1.98 for
+  10/100 vs 20/100); node --check bundle.js OK.
+- [ ] Deploy + smoke test (this session).

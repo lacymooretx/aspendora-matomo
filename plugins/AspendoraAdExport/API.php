@@ -44,6 +44,59 @@ class API extends \Piwik\Plugin\API
         ]);
     }
 
+    /** Won GHL opportunities with revenue, Google Ads offline-conversion format. */
+    public function getGoogleAdsSalesExport($idSite, $period, $date, $conversionName = 'Closed Won')
+    {
+        return $this->salesExport($idSite, $period, $date, 'gclid', [
+            'Google Click ID'     => 'click_id',
+            'Conversion Name'     => fn() => $conversionName,
+            'Conversion Time'     => 'time_formatted',
+            'Conversion Value'    => 'value',
+            'Conversion Currency' => fn() => 'USD',
+        ]);
+    }
+
+    /** Won GHL opportunities with revenue, Microsoft Ads offline-conversion format. */
+    public function getMicrosoftAdsSalesExport($idSite, $period, $date, $conversionName = 'Closed Won')
+    {
+        return $this->salesExport($idSite, $period, $date, 'msclkid', [
+            'Microsoft Click ID' => 'click_id',
+            'Conversion Name'    => fn() => $conversionName,
+            'Conversion Time'    => 'time_formatted',
+            'Conversion Value'   => 'value',
+            'Currency Code'      => fn() => 'USD',
+        ]);
+    }
+
+    private function salesExport($idSite, $period, $date, string $network, array $columns): DataTable
+    {
+        Piwik::checkUserHasViewAccess($idSite);
+        $periodObj = PeriodFactory::build($period, $date);
+        $start = $periodObj->getDateStart()->toString('Y-m-d') . ' 00:00:00';
+        $end = $periodObj->getDateEnd()->toString('Y-m-d') . ' 23:59:59';
+        $table = Common::prefixTable(AspendoraAdExport::TABLE);
+        $rows = Db::fetchAll(
+            "SELECT click_id, monetary_value, won_at FROM `$table`
+             WHERE network = ? AND click_id IS NOT NULL AND won_at BETWEEN ? AND ?
+             ORDER BY won_at",
+            [$network, $start, $end]
+        );
+        $dt = new DataTable();
+        foreach ($rows as $r) {
+            $src = [
+                'click_id'       => $r['click_id'],
+                'time_formatted' => date('Y-m-d H:i:s', strtotime($r['won_at'])) . '+00:00',
+                'value'          => number_format((float) $r['monetary_value'], 2, '.', ''),
+            ];
+            $row = [];
+            foreach ($columns as $header => $spec) {
+                $row[$header] = is_callable($spec) ? $spec() : $src[$spec];
+            }
+            $dt->addRowFromSimpleArray(array_merge(['label' => $r['click_id']], $row));
+        }
+        return $dt;
+    }
+
     private function export($idSite, $period, $date, string $network, array $columns): DataTable
     {
         Piwik::checkUserHasViewAccess($idSite);

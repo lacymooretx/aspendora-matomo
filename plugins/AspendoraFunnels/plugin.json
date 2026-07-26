@@ -1,0 +1,11 @@
+{
+    "name": "AspendoraFunnels",
+    "description": "Multi-step conversion funnels computed from per-visit pageview sequences: per-step visitors, drop-off, and overall conversion. Funnel definitions come from the ASPENDORA_FUNNELS environment variable. Original Aspendora plugin.",
+    "version": "1.0.0",
+    "theme": false,
+    "require": {
+        "matomo": ">=5.0.0-b1,<6.0.0-b1"
+    },
+    "authors": [{ "name": "Aspendora Technologies", "homepage": "https://www.aspendora.com" }],
+    "license": "GPL v3+"
+}
