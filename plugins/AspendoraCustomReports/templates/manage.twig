@@ -1,0 +1,53 @@
+{% extends 'admin.twig' %}
+
+{% block content %}
+<div class="card">
+  <div class="card-content">
+    <h2 class="card-title">Custom Reports</h2>
+    {% if message %}<p style="color:{{ message starts with 'error' ? '#c00' : '#080' }}"><strong>{{ message }}</strong></p>{% endif %}
+    <p>Define a report from the catalog; it renders for every site under <strong>Behaviour → Custom Reports</strong>. Dimension and metrics must share a scope (visit or action).</p>
+
+    <h3>Existing reports</h3>
+    <table class="entityTable">
+      <thead><tr><th>Name</th><th>Dimension</th><th>Metrics</th><th>Filters</th><th></th></tr></thead>
+      <tbody>
+      {% for r in reports %}
+        <tr>
+          <td>{{ r.name }}</td><td>{{ r.dimension }}</td><td>{{ r.metrics }}</td><td>{{ r.filters }}</td>
+          <td><a href="index.php?module=AspendoraCustomReports&action=remove&idReport={{ r.id }}&nonce={{ nonce }}&{{ url_extra|default('') }}idSite={{ idSite }}&period=day&date=today" onclick="return confirm('Delete this report?')">delete</a></td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5">None yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
+    <h3 style="margin-top:1.5em">New report</h3>
+    <form method="post" action="index.php?module=AspendoraCustomReports&action=save&idSite={{ idSite }}&period=day&date=today">
+      <input type="hidden" name="nonce" value="{{ nonce }}"/>
+      <p><label>Name<br/><input type="text" name="name" required style="width:320px"/></label></p>
+      <p><label>Dimension<br/>
+        <select name="dimension" required>
+          {% for key, d in catalog.dimensions %}
+            <option value="{{ key }}">[{{ d.scope }}] {{ d.label }}</option>
+          {% endfor %}
+        </select></label></p>
+      <p>Metrics (pick ones matching the dimension's scope):<br/>
+        {% for key, m in catalog.metrics %}
+          <label style="margin-right:14px"><input type="checkbox" name="metrics[]" value="{{ key }}"/> [{{ m.scope }}] {{ m.label }}</label>
+        {% endfor %}
+      </p>
+      <p>Optional filter (dimension = value):<br/>
+        <select name="filter_dimension">
+          <option value="">(no filter)</option>
+          {% for key, d in catalog.dimensions %}
+            <option value="{{ key }}">[{{ d.scope }}] {{ d.label }}</option>
+          {% endfor %}
+        </select>
+        <input type="text" name="filter_value" placeholder="value"/>
+      </p>
+      <p><button type="submit" class="btn">Create report</button></p>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+<div class="card">
+  <div class="card-content">
+    <h2 class="card-title">Custom Reports</h2>
+    {% if reports is empty %}
+      <p>No custom reports defined yet.{% if isSuperUser %} Create one under <strong>Administration → Diagnostics → Custom Reports</strong>.{% endif %}</p>
+    {% endif %}
+    {% for r in reports %}
+      <h3 style="margin-top:1.2em">{{ r.def.name }}</h3>
+      <p style="color:#666;font-size:12px">dimension: {{ r.def.dimension }}{% if r.def.filters %} · filters: {{ r.def.filters }}{% endif %}</p>
+      {% if r.rows is empty %}
+        <p><em>No data for this period.</em></p>
+      {% else %}
+      <div style="overflow-x:auto">
+      <table class="entityTable">
+        <thead><tr>{% for c in r.columns %}<th>{{ c }}</th>{% endfor %}</tr></thead>
+        <tbody>
+          {% for row in r.rows %}
+          <tr>{% for c in r.columns %}<td>{{ row[c] }}</td>{% endfor %}</tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>

@@ -1,0 +1,8 @@
+{
+    "AspendoraCohorts": {
+        "Cohorts": "Cohorts",
+        "WeeklyCohorts": "Weekly retention cohorts",
+        "CohortWeek": "Cohort (first-visit week)",
+        "Documentation": "Visitors grouped by the week they first appeared; each +Nw column shows the percentage seen again N weeks later. Identity is the userId when known (newsletter/CRM-identified visitors), otherwise the visitor ID. IMPORTANT: with cookieless tracking the anonymous visitor ID rotates daily, so anonymous retention is under-counted — treat these numbers as a lower bound, most reliable for identified visitors."
+    }
+}
