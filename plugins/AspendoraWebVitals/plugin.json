@@ -1,0 +1,11 @@
+{
+    "name": "AspendoraWebVitals",
+    "description": "Daily Core Web Vitals + performance scores from the PageSpeed Insights API for configured pages, mobile and desktop. Original Aspendora plugin.",
+    "version": "1.0.0",
+    "theme": false,
+    "require": {
+        "matomo": ">=5.0.0-b1,<6.0.0-b1"
+    },
+    "authors": [{ "name": "Aspendora Technologies", "homepage": "https://www.aspendora.com" }],
+    "license": "GPL v3+"
+}

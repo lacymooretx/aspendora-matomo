@@ -1,0 +1,10 @@
+{
+    "AspendoraSearchKeywords": {
+        "SearchKeywords": "Search Keywords (GSC)",
+        "Keyword": "Keyword",
+        "Clicks": "Clicks",
+        "Impressions": "Impressions",
+        "AvgPosition": "Avg. Position",
+        "ReportDocumentation": "Google Search Console keyword performance imported daily. Clicks and impressions are summed over the selected period; average position is impression-weighted. GSC data lags about 3 days behind."
+    }
+}

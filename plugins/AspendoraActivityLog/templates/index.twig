@@ -1,0 +1,32 @@
+{% extends 'admin.twig' %}
+
+{% block content %}
+<div class="card">
+  <div class="card-content">
+    <h2 class="card-title">Activity Log</h2>
+    <p>Logins and configuration changes (users, sites, goals, segments, settings). Newest first, last 300 entries.</p>
+    <table class="entityTable" style="width:100%">
+      <thead>
+        <tr>
+          <th style="width:160px">Time (UTC)</th>
+          <th style="width:140px">User</th>
+          <th style="width:260px">Event</th>
+          <th>Detail</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in entries %}
+        <tr>
+          <td>{{ e.ts }}</td>
+          <td>{{ e.login }}</td>
+          <td><code>{{ e.event }}</code></td>
+          <td style="word-break:break-all"><small>{{ e.detail }}</small></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4">No activity recorded yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

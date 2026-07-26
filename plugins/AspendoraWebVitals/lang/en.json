@@ -1,0 +1,7 @@
+{
+    "AspendoraWebVitals": {
+        "WebVitals": "Web Vitals",
+        "Page": "Page [strategy]",
+        "ReportDocumentation": "Lab Core Web Vitals from the PageSpeed Insights API, collected daily for configured pages (mobile and desktop). Shows the most recent measurement inside the selected period. Lab LCP on this site is known to overstate real paint times — trend matters more than absolute value."
+    }
+}
