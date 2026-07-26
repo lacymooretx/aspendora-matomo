@@ -1,0 +1,11 @@
+{
+    "name": "AspendoraUsersFlow",
+    "description": "Visitor path analysis: top paths, per-step flow with drop-offs, and a Sankey flow visualization. Original Aspendora plugin, reads the visit action log.",
+    "version": "1.0.0",
+    "theme": false,
+    "require": {
+        "matomo": ">=5.0.0-b1,<6.0.0-b1"
+    },
+    "authors": [{ "name": "Aspendora Technologies", "homepage": "https://www.aspendora.com" }],
+    "license": "GPL v3+"
+}

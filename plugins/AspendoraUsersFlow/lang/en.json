@@ -1,0 +1,12 @@
+{
+    "AspendoraUsersFlow": {
+        "UsersFlow": "Users Flow",
+        "TopPaths": "Top paths",
+        "Path": "Path",
+        "FlowSteps": "Flow by step",
+        "StepPage": "Step / page",
+        "FlowVisualization": "Flow visualization",
+        "TopPathsDocumentation": "The most common page sequences visitors take (first pages of each visit, query strings stripped). A path ending early means the visit ended there.",
+        "FlowStepsDocumentation": "For each interaction step: the top pages, how many visits proceeded to another page, and how many ended at this page ('Exited here')."
+    }
+}

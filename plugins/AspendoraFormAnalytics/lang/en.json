@@ -1,0 +1,11 @@
+{
+    "AspendoraFormAnalytics": {
+        "Forms": "Forms",
+        "FormsFunnel": "Forms funnel",
+        "Form": "Form",
+        "Field": "Field",
+        "FieldPerformance": "Field performance",
+        "FormsDocumentation": "Per-form funnel from website events: how many visitors saw the form (50% visible), started typing, submitted, or left mid-form. Start rate = starts/views; conversion = submits/starts.",
+        "FieldsDocumentation": "Per-field interaction counts and average hesitation time (focus to blur). 'Last field before abandon' counts how often a field was the final one touched before the visitor left without submitting — high values point at the problem field."
+    }
+}

@@ -1,0 +1,58 @@
+<div class="card">
+  <div class="card-content">
+    <h2 class="card-title">Users Flow</h2>
+    <p>Page-to-page movement for the selected period. Column = interaction step; band width = visits. Red fraction = visits that ended at that page.</p>
+    <div id="aspFlow" style="overflow-x:auto"></div>
+  </div>
+</div>
+<script>
+(function() {
+  var data = {{ graphJson|raw }};
+  var steps = data.steps || {};
+  var stepKeys = Object.keys(steps).sort(function(a, b) { return a - b; });
+  if (!stepKeys.length) {
+    document.getElementById('aspFlow').innerHTML = '<p><em>No visit data in this period yet.</em></p>';
+    return;
+  }
+  var colW = 230, nodeW = 170, rowH = 26, gap = 10, padTop = 30;
+  var maxRows = 0;
+  stepKeys.forEach(function(k) { maxRows = Math.max(maxRows, steps[k].length); });
+  var H = padTop + maxRows * (rowH + gap) + 20;
+  var W = stepKeys.length * colW;
+  var pos = {}; // "step|page" -> {x,y,visits}
+  var maxVisits = 1;
+  stepKeys.forEach(function(k) { steps[k].forEach(function(n) { maxVisits = Math.max(maxVisits, n.visits); }); });
+
+  var svg = ['<svg width="' + W + '" height="' + H + '" style="font:12px sans-serif">'];
+  stepKeys.forEach(function(k, ci) {
+    var x = ci * colW;
+    svg.push('<text x="' + (x + 4) + '" y="16" font-weight="bold" fill="#444">Step ' + (parseInt(k, 10) + 1) + '</text>');
+    steps[k].forEach(function(n, ri) {
+      var y = padTop + ri * (rowH + gap);
+      pos[k + '|' + n.page] = { x: x, y: y, visits: n.visits };
+      var w = Math.max(30, nodeW * (n.visits / maxVisits));
+      var exitW = n.visits ? w * (n.exits / n.visits) : 0;
+      svg.push('<rect x="' + (x + 4) + '" y="' + y + '" width="' + w + '" height="' + (rowH - 8) + '" rx="3" fill="#3450A3"/>');
+      if (exitW > 0.5) {
+        svg.push('<rect x="' + (x + 4 + w - exitW) + '" y="' + y + '" width="' + exitW + '" height="' + (rowH - 8) + '" rx="3" fill="#d4291f"/>');
+      }
+      var label = n.page.length > 26 ? n.page.substring(0, 25) + '…' : n.page;
+      svg.push('<text x="' + (x + 8) + '" y="' + (y + rowH - 14) + '" fill="#fff">' + label.replace(/&/g, '&amp;').replace(/</g, '&lt;') + ' (' + n.visits + ')</text>');
+    });
+  });
+  (data.links || []).forEach(function(l) {
+    var a = pos[l.step + '|' + l.from];
+    var b = pos[(l.step + 1) + '|' + l.to];
+    if (!a || !b) return;
+    var x1 = a.x + 4 + nodeW, y1 = a.y + (rowH - 8) / 2;
+    var x2 = b.x + 4, y2 = b.y + (rowH - 8) / 2;
+    var mid = (x1 + x2) / 2;
+    var wStroke = Math.max(1.5, 12 * (l.visits / maxVisits));
+    svg.push('<path d="M' + x1 + ',' + y1 + ' C' + mid + ',' + y1 + ' ' + mid + ',' + y2 + ' ' + x2 + ',' + y2 +
+      '" stroke="#8faadc" stroke-width="' + wStroke + '" fill="none" opacity="0.55"><title>' +
+      l.from + ' → ' + l.to + ': ' + l.visits + ' visits</title></path>');
+  });
+  svg.push('</svg>');
+  document.getElementById('aspFlow').innerHTML = svg.join('');
+})();
+</script>

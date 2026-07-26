@@ -1,0 +1,11 @@
+{
+    "name": "AspendoraFormAnalytics",
+    "description": "Form funnel and field-level analytics for Gravity Forms events tracked from the website (view/start/field/submit/abandon). Original Aspendora plugin.",
+    "version": "1.0.0",
+    "theme": false,
+    "require": {
+        "matomo": ">=5.0.0-b1,<6.0.0-b1"
+    },
+    "authors": [{ "name": "Aspendora Technologies", "homepage": "https://www.aspendora.com" }],
+    "license": "GPL v3+"
+}
