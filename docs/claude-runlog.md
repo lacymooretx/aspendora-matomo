@@ -105,4 +105,11 @@ app-build-progress.md; Wave 6 = reverse-IP company reports + alerts.
 - [x] **Verify (local)**: php -l clean on all three plugins;
   funnel-matcher harness → [3,2,1] as expected; z-test math checked (1.98 for
   10/100 vs 20/100); node --check bundle.js OK.
-- [ ] Deploy + smoke test (this session).
+- [x] Deployed. **Bug found in prod:** Matomo update classes must live in the
+  PLUGIN ROOT namespace (`Piwik\Plugins\AspendoraAdExport\Updates_1_1_0`), not
+  an `Updates` sub-namespace — core:update threw "class not found". Fixed
+  (c54de15), rebuilt, `core:update --yes` then created
+  `matomo_aspendora_offline_conversions`.
+- [x] Smoke tested over HTTPS: Funnels returns live data (10 visits at step 1,
+  0 at contact step — default funnel), Experiments [] (none configured on
+  pages yet), sales export [] (GHL token pending), both reports in metadata.
