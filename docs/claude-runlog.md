@@ -36,3 +36,28 @@ Low-level execution log. High-level phase status: `app-build-progress.md`.
 
 **Next:** await user approval of Wave 5 (phase gate), then deploy steps in
 app-build-progress.md; Wave 6 = reverse-IP company reports + alerts.
+
+## 2026-07-26 — Wave 5 deploy (approved)
+
+- [x] Committed Wave 5 (f587e1d), pushed to origin/aspendora.
+- [x] Added `ASPENDORA_GHL_*` / `ASPENDORA_IDENTITY_*` env passthrough to
+  `~/code/vultr-proxmox/services/aspendora-matomo/docker-compose.prod.yml`,
+  scp'd to docker-apps.
+- [x] Deployed per service README: rsync src → build `aspendora/matomo:local` →
+  `up -d --force-recreate --renew-anon-volumes matomo-web`. Activated
+  AspendoraIdentity.
+- [x] **Bug found in prod:** first sync failed with mixed-collation error —
+  MariaDB 11 creates Matomo tables as `utf8mb4_uca1400_ai_ci`; our table was
+  `utf8mb4_general_ci` and the sync joins on user_id. Fix: install() now
+  inherits log_visit's collation from information_schema; live table converted
+  via `ALTER TABLE … CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci`.
+- [x] **Verified end-to-end:** sync clean (only expected "GHL credentials not
+  set" warning); identity table has 1 row (existing form-32 userId), score 20;
+  `AspendoraIdentity.getKnownVisitors` API returns it over HTTPS.
+- **User actions pending (not blocking):**
+  1. Generate GHL Private Integration token (Settings → Integrations → Private
+     Integrations, scopes contacts.readonly + contacts.write) and add
+     `ASPENDORA_GHL_TOKEN` + `ASPENDORA_GHL_LOCATION_ID` to
+     docker-apps:/opt/services/aspendora-matomo/.env, then
+     `docker compose … up -d matomo-web` to pick up env.
+  2. Decorate GHL email-template links with `?asp_c={{contact.id}}`.

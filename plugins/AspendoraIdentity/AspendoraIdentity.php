@@ -31,6 +31,14 @@ class AspendoraIdentity extends \Piwik\Plugin
     public function install()
     {
         $table = Common::prefixTable(self::TABLE);
+        // Match log_visit's collation — the sync joins on user_id, and MariaDB 11
+        // defaults new DBs to utf8mb4_uca1400_ai_ci (mixed-collation '=' is an error).
+        $row = Db::fetchRow(
+            "SELECT TABLE_COLLATION c FROM information_schema.TABLES
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?",
+            [Common::prefixTable('log_visit')]
+        );
+        $collation = preg_replace('/[^a-z0-9_]/', '', $row['c'] ?? '') ?: 'utf8mb4_general_ci';
         Db::exec("CREATE TABLE IF NOT EXISTS `$table` (
             `idsite` INT UNSIGNED NOT NULL,
             `user_id` VARCHAR(200) NOT NULL,
@@ -50,7 +58,7 @@ class AspendoraIdentity extends \Piwik\Plugin
             PRIMARY KEY (`idsite`, `user_id`),
             KEY `idx_site_score` (`idsite`, `lead_score`),
             KEY `idx_site_seen` (`idsite`, `last_seen`)
-        ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
+        ) DEFAULT CHARSET=utf8mb4 COLLATE=$collation");
     }
 
     public function uninstall()
