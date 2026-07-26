@@ -1,8 +1,7 @@
 <?php
 
-namespace Piwik\Plugins\AspendoraAdExport\Updates;
+namespace Piwik\Plugins\AspendoraAdExport;
 
-use Piwik\Plugins\AspendoraAdExport\AspendoraAdExport;
 use Piwik\Updater;
 use Piwik\Updates as PiwikUpdates;
 
