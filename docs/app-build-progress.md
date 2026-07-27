@@ -115,3 +115,19 @@ IP. ISP/hosting/cloud networks are flagged and excluded from reports.
 
 Waves 5–8 delivered. Future candidates (not committed): rank tracking, AI-bot
 crawl analytics, per-client scheduled PDF reports, GA4 import.
+
+## Stack reconciliation (2026-07-27)
+
+Parallel sessions had diverged: Waves 5/7 treated GHL as the CRM of record while the
+EspoCRM program built its own site tracker. Reconciled per the actual stack decisions
+(see `~/code/aspendora-existingwebsite/docs/stack-map.md`, mirrored to IT Glue doc 24419246):
+
+- **EspoCRM is the CRM of record.** AspendoraIdentity 1.1.0 syncs identified visitors to
+  Espo via the CRM's keyed `AspBridgeIngest` entry point (feeds Espo's own TrackingService —
+  its engagement fields are readOnly over REST by design, so REST writes were not an option).
+  GHL enrichment/tags remain env-gated for the migration window only.
+- **AdExport** imports won opportunities from BOTH: Espo (stage=Closed Won, keys `espo:<id>`)
+  and GHL (legacy). Same offline-conversion table and exports.
+- Matomo `bundle.js` remains THE site tracker; Espo's AspTrackJs is dormant by decision.
+- Matomo's `lead_score` stays internal (Known Visitors report + GHL legacy tag); Espo's own
+  scoring/lifecycle react to the bridged data — no duplicated scoring.

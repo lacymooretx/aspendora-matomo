@@ -72,33 +72,19 @@ class Sync
         );
         foreach ($rows as $r) {
             try {
-                $target = null;
-                if (!empty($r['espo_target']) && strpos($r['espo_target'], ':') !== false) {
-                    [$type, $id] = explode(':', $r['espo_target'], 2);
-                    $target = ['type' => $type, 'id' => $id, 'pageViewCount' => null];
-                }
-                if ($target === null) {
-                    $target = $this->espo->findTargetByEmail($r['email'])
-                        ?? $this->espo->createLead($r['email'], $r['first_name'], $r['last_name']);
-                }
-                if ($target['pageViewCount'] === null) {
-                    $fresh = $this->espo->findTargetByEmail($r['email']);
-                    $target['pageViewCount'] = $fresh['pageViewCount'] ?? 0;
-                }
                 $views = $this->pageViewsSince((int) $r['idsite'], $r['user_id'], $r['espo_synced_at']);
-                foreach ($views as $v) {
-                    $this->espo->createPageView($target['type'], $target['id'], $v['url'], $v['title'], $v['t']);
-                }
-                $this->espo->touchEngagement(
-                    $target['type'], $target['id'],
-                    $r['last_seen'], $target['pageViewCount'] + count($views)
-                );
+                $resp = $this->espo->ingest($r['email'], $r['first_name'], $r['last_name'], $views);
                 Db::query(
                     "UPDATE `$identity` SET espo_target = ?, espo_synced_at = ? WHERE idsite = ? AND user_id = ?",
-                    [$target['type'] . ':' . $target['id'], $r['last_seen'], (int) $r['idsite'], $r['user_id']]
+                    [
+                        substr($resp['targetType'] . ':' . $resp['targetId'], 0, 90),
+                        $r['last_seen'], (int) $r['idsite'], $r['user_id'],
+                    ]
                 );
                 $this->logger->info('AspendoraIdentity: synced {u} to Espo {t} ({n} new page views)', [
-                    'u' => $r['user_id'], 't' => $target['type'] . ':' . $target['id'], 'n' => count($views),
+                    'u' => $r['user_id'],
+                    't' => $resp['targetType'] . ':' . $resp['targetId'],
+                    'n' => $resp['recorded'],
                 ]);
             } catch (\Exception $e) {
                 $this->logger->error('AspendoraIdentity: Espo sync failed for {u}: {m}', [
