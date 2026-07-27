@@ -1,0 +1,11 @@
+{
+    "name": "AspendoraInsights",
+    "description": "Weekly AI-written analytics digest: gathers week-over-week stats from all reports (traffic, pages, referrers, keywords, known visitors, companies, funnels, errors), has Claude write a plain-language narrative with recommendations, and emails a branded, client-presentable HTML report. Original Aspendora plugin.",
+    "version": "1.0.0",
+    "theme": false,
+    "require": {
+        "matomo": ">=5.0.0-b1,<6.0.0-b1"
+    },
+    "authors": [{ "name": "Aspendora Technologies", "homepage": "https://www.aspendora.com" }],
+    "license": "GPL v3+"
+}

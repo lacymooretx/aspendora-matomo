@@ -113,3 +113,20 @@ app-build-progress.md; Wave 6 = reverse-IP company reports + alerts.
 - [x] Smoke tested over HTTPS: Funnels returns live data (10 visits at step 1,
   0 at contact step — default funnel), Experiments [] (none configured on
   pages yet), sales export [] (GHL token pending), both reports in metadata.
+
+## 2026-07-26 — Wave 8: JS error tracking + AI insights digest
+
+- [x] **AspendoraCrash**: bundle.js initErrors() (onerror + unhandledrejection,
+  ≤10/page) → hub.php 'err' branch (2000/day cap) →
+  `matomo_aspendora_js_errors`; Behaviour → JS Errors report; daily 60d prune.
+- [x] **AspendoraInsights**: StatsCollector (internal Request::processRequest
+  across all Aspendora + core reports, WoW), ClaudeClient (claude-opus-5, raw
+  curl per repo convention — noted deviation from the claude-api skill's
+  SDK preference to keep composer untouched for upstream merges; no thinking
+  param [on by default], stop_reason refusal check, `fallbacks: "default"` +
+  `server-side-fallback-2026-07-01` beta), Digest (per-site HTML narrative,
+  branded white-label email via Piwik\Mail), weekly task +
+  `aspendora-insights:send`. claude-api skill loaded before writing per
+  its trigger rules.
+- [x] Verify (local): php -l clean (hub.php + both plugins), node --check OK.
+- [ ] Deploy + smoke test (this session).

@@ -30,6 +30,15 @@ if credentials are missing, errors if the token/scopes are wrong.
 Non-secret: `ASPENDORA_ALERT_EMAIL` — recipient of the daily hot-activity digest
 (skipped when unset).
 
+## AspendoraInsights (Wave 8)
+
+| Variable | Purpose | Where to get it | Rotation |
+|---|---|---|---|
+| `ASPENDORA_ANTHROPIC_KEY` | Claude API key for the weekly AI-written analytics digest (model claude-opus-5, ~1 small call per site per week) | console.anthropic.com → API Keys | Rotate on suspicion |
+
+Non-secret: `ASPENDORA_INSIGHTS_EMAIL` — digest recipient (falls back to
+`ASPENDORA_ALERT_EMAIL`).
+
 ## AspendoraSearchKeywords (Wave 1)
 
 | Variable | Purpose |

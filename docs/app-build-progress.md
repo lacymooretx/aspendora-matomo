@@ -94,6 +94,24 @@ IP. ISP/hosting/cloud networks are flagged and excluded from reports.
 - [x] Verification: lint clean, funnel matcher + z-test behavioral tests pass,
       deployed + smoke tested (see runlog).
 
-## Planned next waves (approved roadmap, not started)
+## Wave 8 — JS error tracking + AI insights digest (2026-07-26)
 
-- **Wave 8** — AI insights digest, JS error tracking, client-facing report polish
+**Deliverables:**
+
+- [x] **AspendoraCrash** — bundle.js captures window.onerror + unhandledrejection
+      (max 10/page), hub.php 'err' branch stores them (2000/day cap),
+      Behaviour → JS Errors groups by message+source, daily 60-day retention prune.
+- [x] **AspendoraInsights** — weekly task gathers a WoW stats bundle per site
+      (traffic, pages, referrers, GSC keywords, known visitors, companies,
+      funnels, JS errors) via internal APIs, Claude (claude-opus-5, raw curl by
+      repo convention, server-side refusal fallback enabled) writes a
+      plain-language narrative ("What happened / Leads & opportunities / Do this
+      next"), emailed as a branded, client-presentable HTML digest — the
+      white-label report polish deliverable. Console:
+      `aspendora-insights:send`. Requires `ASPENDORA_ANTHROPIC_KEY`.
+- [x] Verification: lint clean; deployed + smoke tested (see runlog).
+
+## Roadmap complete
+
+Waves 5–8 delivered. Future candidates (not committed): rank tracking, AI-bot
+crawl analytics, per-client scheduled PDF reports, GA4 import.

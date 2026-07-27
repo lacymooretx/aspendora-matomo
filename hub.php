@@ -81,6 +81,25 @@ try {
             max(0, min(500000, (int) ($body['dh'] ?? 0))),
             max(0, min(20000, (int) ($body['vw'] ?? 0))),
         ]);
+    } elseif ($type === 'err') {
+        // daily cap: bound abuse/error storms
+        $count = $pdo->query('SELECT COUNT(*) FROM matomo_aspendora_js_errors WHERE day = CURDATE()')->fetchColumn();
+        if ($count > 2000) {
+            http_response_code(429);
+            exit;
+        }
+        $stmt = $pdo->prepare('INSERT INTO matomo_aspendora_js_errors
+            (idsite, day, url, message, source, line, col, stack, ua)
+            VALUES (?,CURDATE(),?,?,?,?,?,?,?)');
+        $stmt->execute([
+            $idsite, $url,
+            substr((string) ($body['msg'] ?? ''), 0, 300),
+            substr((string) ($body['src'] ?? ''), 0, 200),
+            max(0, min(1000000, (int) ($body['line'] ?? 0))),
+            max(0, min(100000, (int) ($body['col'] ?? 0))),
+            substr((string) ($body['stack'] ?? ''), 0, 1500),
+            substr((string) ($body['ua'] ?? $_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 300),
+        ]);
     } else {
         http_response_code(400);
         exit;

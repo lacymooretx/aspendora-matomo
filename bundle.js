@@ -72,6 +72,30 @@
         }, { capture: true, passive: true });
     }
 
+    // ---- JS error tracking (capped per page to bound error storms)
+    var errCount = 0;
+    function reportError(msg, src, line, col, stack) {
+        if (errCount >= 10) { return; }
+        errCount++;
+        beacon({
+            t: 'err',
+            msg: String(msg || '').slice(0, 300),
+            src: String(src || '').slice(0, 200),
+            line: line | 0, col: col | 0,
+            stack: String(stack || '').slice(0, 1500),
+            ua: navigator.userAgent
+        });
+    }
+    function initErrors() {
+        window.addEventListener('error', function (e) {
+            reportError(e.message, e.filename, e.lineno, e.colno, e.error && e.error.stack);
+        });
+        window.addEventListener('unhandledrejection', function (e) {
+            var r = e.reason;
+            reportError('Unhandled rejection: ' + (r && r.message || r), '', 0, 0, r && r.stack);
+        });
+    }
+
     // ---- A/B experiments
     // Page config: window.__asp.exp = [{name:'hero-cta', variants:['control','alt']}]
     // Assignment is persistent per device (localStorage), exposed as an html class
@@ -190,6 +214,6 @@
         document.head.appendChild(s);
     }
 
-    function init() { initExperiments(); initIdentity(); initMedia(); initHeat(); initRec(); }
+    function init() { initErrors(); initExperiments(); initIdentity(); initMedia(); initHeat(); initRec(); }
     if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
 })();

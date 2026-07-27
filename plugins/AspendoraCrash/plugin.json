@@ -1,0 +1,11 @@
+{
+    "name": "AspendoraCrash",
+    "description": "JavaScript error tracking: window.onerror / unhandledrejection beacons from bundle.js land via hub.php; errors are grouped by message and source with occurrence counts, affected pages, and last-seen. 60-day retention. Original Aspendora plugin.",
+    "version": "1.0.0",
+    "theme": false,
+    "require": {
+        "matomo": ">=5.0.0-b1,<6.0.0-b1"
+    },
+    "authors": [{ "name": "Aspendora Technologies", "homepage": "https://www.aspendora.com" }],
+    "license": "GPL v3+"
+}

@@ -1,0 +1,10 @@
+{
+    "AspendoraCrash": {
+        "JsErrors": "JS Errors",
+        "Error": "Error",
+        "Occurrences": "Occurrences",
+        "Pages": "Affected pages",
+        "LastSeen": "Last Seen",
+        "ReportDocumentation": "JavaScript errors and unhandled promise rejections captured on your sites (max 10 per page view, 2000 per day), grouped by message and source file. Retained 60 days."
+    }
+}
