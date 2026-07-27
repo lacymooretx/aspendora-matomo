@@ -129,4 +129,16 @@ app-build-progress.md; Wave 6 = reverse-IP company reports + alerts.
   `aspendora-insights:send`. claude-api skill loaded before writing per
   its trigger rules.
 - [x] Verify (local): php -l clean (hub.php + both plugins), node --check OK.
-- [ ] Deploy + smoke test (this session).
+- [x] Deployed. **Blocker found + fixed in prod:** Piwik Mail falls back to
+  PHP mail() and the container has no MTA → "Could not instantiate mail
+  function" (this also silently affected the Wave 6 alert digest, which had
+  never had content to send). Fix (a5c56b7): new
+  AspendoraInsights\Mailer — SMTP2GO HTTP API (POST /v3/email/send, key from
+  ASPENDORA_SMTP2GO_API_KEY, sender analytics@aspendora.com overridable via
+  ASPENDORA_MAIL_FROM) with Piwik Mail fallback; digest + Wave 6 alerts both
+  use it. Host .env got ASPENDORA_ANTHROPIC_KEY (from local ANTHROPIC_API_KEY)
+  and ASPENDORA_SMTP2GO_API_KEY (from local SMTP2GO_API_KEY).
+- [x] **Smoke tested end-to-end:** synthetic 'err' beacon → hub.php 204 → row
+  in matomo_aspendora_js_errors (then removed); JS Errors report in metadata;
+  `aspendora-insights:send` generated Claude narratives for both sites and
+  DELIVERED the digest email to lacy@aspendora.com via SMTP2GO.
