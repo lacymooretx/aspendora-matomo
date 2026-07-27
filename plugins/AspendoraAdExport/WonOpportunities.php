@@ -8,13 +8,17 @@ use Piwik\Db;
 use Piwik\Log\LoggerInterface;
 
 /**
- * Imports won GoHighLevel opportunities and attributes each to the most
+ * Imports won opportunities from BOTH CRMs and attributes each to the most
  * recent ad click id (AdClick event) of the same identity within 90 days.
- * Identity resolution: the opportunity's contact is matched to Matomo visits
- * whose user_id is either the contact's email or "ghl:<contactId>".
  *
- * Uses GET /opportunities/search (snake_case location_id!) — requires the
- * PIT to include the opportunities.readonly scope.
+ *  - EspoCRM (CRM of record): GET Opportunity where stage=Closed Won.
+ *    Env: ASPENDORA_ESPO_URL / ASPENDORA_ESPO_API_KEY. Rows keyed "espo:<id>".
+ *  - GoHighLevel (legacy, migration window): GET /opportunities/search
+ *    (snake_case location_id!; PIT needs opportunities.readonly).
+ *    Env-gated by ASPENDORA_GHL_* — unset to kill after cutover.
+ *
+ * Identity resolution: the opportunity's contact email (or "ghl:<contactId>")
+ * matched to Matomo visits' user_id.
  */
 class WonOpportunities
 {
@@ -29,10 +33,105 @@ class WonOpportunities
 
     public function import(): void
     {
+        $this->importFromEspo();
+        $this->importFromGhl();
+    }
+
+    /** EspoCRM Closed Won opportunities — the CRM of record going forward. */
+    private function importFromEspo(): void
+    {
+        if (!getenv('ASPENDORA_ESPO_URL') || !getenv('ASPENDORA_ESPO_API_KEY')) {
+            $this->logger->warning('AspendoraAdExport: Espo env credentials not set; skipping Espo won-opportunity import');
+            return;
+        }
+        $table = Common::prefixTable(AspendoraAdExport::TABLE);
+        $imported = 0;
+        $offset = 0;
+        do {
+            $resp = $this->espoGet('/Opportunity?' . http_build_query([
+                'maxSize'             => 100,
+                'offset'              => $offset,
+                'select'              => 'id,name,amount,stage,closeDate,modifiedAt,contactId',
+                'where[0][type]'      => 'equals',
+                'where[0][attribute]' => 'stage',
+                'where[0][value]'     => 'Closed Won',
+            ]));
+            $opps = $resp['list'] ?? [];
+            foreach ($opps as $opp) {
+                $oppId = 'espo:' . ($opp['id'] ?? '');
+                if ($oppId === 'espo:') {
+                    continue;
+                }
+                $exists = Db::fetchOne("SELECT COUNT(*) FROM `$table` WHERE opp_id = ?", [$oppId]);
+                if ($exists) {
+                    continue;
+                }
+                $email = $this->espoContactEmail($opp['contactId'] ?? null);
+                $wonAt = $opp['closeDate'] ?? $opp['modifiedAt'] ?? null;
+                $wonAt = $wonAt ? date('Y-m-d H:i:s', strtotime($wonAt)) : date('Y-m-d H:i:s');
+                $click = $this->findClickForIdentity($email, null, $wonAt);
+                Db::query(
+                    "INSERT INTO `$table`
+                     (opp_id, contact_id, email, opp_name, monetary_value, won_at, network, click_id, imported_at)
+                     VALUES (?,?,?,?,?,?,?,?,NOW())",
+                    [
+                        substr($oppId, 0, 64), $opp['contactId'] ?? null,
+                        $email !== null && $email !== '' ? substr($email, 0, 190) : null,
+                        substr((string) ($opp['name'] ?? ''), 0, 190),
+                        round((float) ($opp['amount'] ?? 0), 2), $wonAt,
+                        $click['network'] ?? null, $click['click_id'] ?? null,
+                    ]
+                );
+                $imported++;
+            }
+            $offset += 100;
+        } while (count($opps) === 100 && $offset <= 2000);
+        if ($imported) {
+            $this->logger->info('AspendoraAdExport: imported {n} won Espo opportunities', ['n' => $imported]);
+        }
+    }
+
+    private function espoContactEmail(?string $contactId): ?string
+    {
+        if (!$contactId) {
+            return null;
+        }
+        try {
+            $c = $this->espoGet('/Contact/' . rawurlencode($contactId));
+            $email = strtolower((string) ($c['emailAddress'] ?? ''));
+            return $email !== '' ? $email : null;
+        } catch (Exception $e) {
+            return null;
+        }
+    }
+
+    private function espoGet(string $path): array
+    {
+        $ch = curl_init(rtrim(getenv('ASPENDORA_ESPO_URL'), '/') . '/api/v1' . $path);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER     => ['X-Api-Key: ' . getenv('ASPENDORA_ESPO_API_KEY')],
+            CURLOPT_TIMEOUT        => 30,
+        ]);
+        $raw = curl_exec($ch);
+        $err = curl_error($ch);
+        $code = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        curl_close($ch);
+        if ($raw === false) {
+            throw new Exception('Espo GET ' . $path . ' failed: ' . $err);
+        }
+        if ($code >= 400) {
+            throw new Exception('Espo GET ' . $path . ' returned HTTP ' . $code . ': ' . substr($raw, 0, 300));
+        }
+        return json_decode($raw, true) ?: [];
+    }
+
+    /** Legacy GHL import — env-gated; remove after migration cutover. */
+    private function importFromGhl(): void
+    {
         $token = getenv('ASPENDORA_GHL_TOKEN');
         $location = getenv('ASPENDORA_GHL_LOCATION_ID');
         if (!$token || !$location) {
-            $this->logger->warning('AspendoraAdExport: GHL env credentials not set; skipping won-opportunity import');
             return;
         }
         $table = Common::prefixTable(AspendoraAdExport::TABLE);

@@ -55,6 +55,8 @@ class AspendoraIdentity extends \Piwik\Plugin
             `lead_score` TINYINT UNSIGNED NOT NULL DEFAULT 0,
             `ghl_checked_at` DATETIME DEFAULT NULL,
             `ghl_hot_pushed` TINYINT(1) NOT NULL DEFAULT 0,
+            `espo_target` VARCHAR(90) DEFAULT NULL,
+            `espo_synced_at` DATETIME DEFAULT NULL,
             PRIMARY KEY (`idsite`, `user_id`),
             KEY `idx_site_score` (`idsite`, `lead_score`),
             KEY `idx_site_seen` (`idsite`, `last_seen`)

@@ -22,12 +22,16 @@ class Sync
     private const GHL_CALL_CAP = 100;
     private const GHL_RECHECK_DAYS = 7;
 
+    private const ESPO_CALL_CAP = 50;
+
     private GhlClient $ghl;
+    private EspoClient $espo;
     private LoggerInterface $logger;
 
-    public function __construct(GhlClient $ghl, LoggerInterface $logger)
+    public function __construct(GhlClient $ghl, LoggerInterface $logger, ?EspoClient $espo = null)
     {
         $this->ghl = $ghl;
+        $this->espo = $espo ?? new EspoClient();
         $this->logger = $logger;
     }
 
@@ -36,12 +40,101 @@ class Sync
         $this->aggregateVisits();
         $this->flagHotIntent();
         $this->computeScores();
+        // EspoCRM is the CRM of record; the GHL block below is the env-gated
+        // legacy path for the migration window (unset ASPENDORA_GHL_* to kill).
+        if ($this->espo->isConfigured()) {
+            $this->syncToEspo();
+        } else {
+            $this->logger->warning('AspendoraIdentity: Espo env credentials not set; skipping CRM-of-record sync');
+        }
         if ($this->ghl->isConfigured()) {
             $this->enrichFromGhl();
             $this->pushHotLeads();
-        } else {
-            $this->logger->warning('AspendoraIdentity: GHL env credentials not set; skipping CRM enrichment/push');
         }
+    }
+
+    /**
+     * Push identified visitors into EspoCRM: upsert the Lead (Contacts win if
+     * one already exists), append AspPageView timeline rows for new page views,
+     * and touch the engagement fields — Espo's own lifecycle-stage, engagement
+     * and scoring hooks react to those saves, so no scoring is duplicated here.
+     */
+    private function syncToEspo(): void
+    {
+        $identity = Common::prefixTable(AspendoraIdentity::TABLE);
+        $rows = Db::fetchAll(
+            "SELECT idsite, user_id, email, first_name, last_name, espo_target, espo_synced_at, last_seen
+             FROM `$identity`
+             WHERE email IS NOT NULL
+               AND (espo_synced_at IS NULL OR last_seen > espo_synced_at)
+             ORDER BY last_seen DESC
+             LIMIT " . self::ESPO_CALL_CAP
+        );
+        foreach ($rows as $r) {
+            try {
+                $target = null;
+                if (!empty($r['espo_target']) && strpos($r['espo_target'], ':') !== false) {
+                    [$type, $id] = explode(':', $r['espo_target'], 2);
+                    $target = ['type' => $type, 'id' => $id, 'pageViewCount' => null];
+                }
+                if ($target === null) {
+                    $target = $this->espo->findTargetByEmail($r['email'])
+                        ?? $this->espo->createLead($r['email'], $r['first_name'], $r['last_name']);
+                }
+                if ($target['pageViewCount'] === null) {
+                    $fresh = $this->espo->findTargetByEmail($r['email']);
+                    $target['pageViewCount'] = $fresh['pageViewCount'] ?? 0;
+                }
+                $views = $this->pageViewsSince((int) $r['idsite'], $r['user_id'], $r['espo_synced_at']);
+                foreach ($views as $v) {
+                    $this->espo->createPageView($target['type'], $target['id'], $v['url'], $v['title'], $v['t']);
+                }
+                $this->espo->touchEngagement(
+                    $target['type'], $target['id'],
+                    $r['last_seen'], $target['pageViewCount'] + count($views)
+                );
+                Db::query(
+                    "UPDATE `$identity` SET espo_target = ?, espo_synced_at = ? WHERE idsite = ? AND user_id = ?",
+                    [$target['type'] . ':' . $target['id'], $r['last_seen'], (int) $r['idsite'], $r['user_id']]
+                );
+                $this->logger->info('AspendoraIdentity: synced {u} to Espo {t} ({n} new page views)', [
+                    'u' => $r['user_id'], 't' => $target['type'] . ':' . $target['id'], 'n' => count($views),
+                ]);
+            } catch (\Exception $e) {
+                $this->logger->error('AspendoraIdentity: Espo sync failed for {u}: {m}', [
+                    'u' => $r['user_id'], 'm' => $e->getMessage(),
+                ]);
+            }
+        }
+    }
+
+    /** @return array<int, array{url:string, title:string, t:string}> */
+    private function pageViewsSince(int $idSite, string $userId, ?string $since): array
+    {
+        $logVisit = Common::prefixTable('log_visit');
+        $logLink = Common::prefixTable('log_link_visit_action');
+        $logAction = Common::prefixTable('log_action');
+        $sinceSql = $since ? ' AND a.server_time > ?' : ' AND a.server_time > DATE_SUB(NOW(), INTERVAL 90 DAY)';
+        $binds = [$idSite, $userId];
+        if ($since) {
+            $binds[] = $since;
+        }
+        $rows = Db::fetchAll(
+            "SELECT CONCAT('https://', u.name) AS url,
+                    COALESCE(t.name, '') AS title,
+                    a.server_time AS t
+             FROM `$logLink` a
+             JOIN `$logVisit` v ON v.idvisit = a.idvisit
+             JOIN `$logAction` u ON u.idaction = a.idaction_url
+             LEFT JOIN `$logAction` t ON t.idaction = a.idaction_name AND a.idaction_event_category IS NULL
+             WHERE a.idsite = ? AND v.user_id = ?
+               AND a.idaction_url IS NOT NULL AND a.idaction_event_category IS NULL
+               $sinceSql
+             ORDER BY a.server_time
+             LIMIT 50",
+            $binds
+        );
+        return $rows;
     }
 
     private function aggregateVisits(): void
