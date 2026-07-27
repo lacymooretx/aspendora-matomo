@@ -142,3 +142,17 @@ app-build-progress.md; Wave 6 = reverse-IP company reports + alerts.
   in matomo_aspendora_js_errors (then removed); JS Errors report in metadata;
   `aspendora-insights:send` generated Claude narratives for both sites and
   DELIVERED the digest email to lacy@aspendora.com via SMTP2GO.
+
+## 2026-07-26 — GHL credentials deployed (user: "you already have ghl creds")
+
+- [x] Found existing PIT in ~/.secrets/.env: `GHL_API_KEY` (pit-…) +
+  `GHL_LOCATION_ID` (primary Aspendora sub-account). Validated read-only
+  before deploying: GET /opportunities/pipelines → 200 (opportunities scope);
+  GET /contacts/<bogus-id> → 400 not 401/403 (contacts scope authorized).
+- [x] Deployed to docker-apps host .env as ASPENDORA_GHL_TOKEN /
+  ASPENDORA_GHL_LOCATION_ID; recreated matomo-web.
+- [x] Verified live: identity sync enriched 1 identity (ghl_contact_id set,
+  website-visitor tag pushed; contact has no name in CRM — expected);
+  won-opp import clean (0 rows — no won opportunities in the location yet).
+- **Remaining user actions:** only `?asp_c={{contact.id}}` decoration in GHL
+  email templates + optional ipinfo.io token.

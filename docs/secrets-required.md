@@ -8,7 +8,7 @@ plugin's header comment for exact usage.
 
 | Variable | Purpose | Where to get it | Rotation |
 |---|---|---|---|
-| `ASPENDORA_GHL_TOKEN` | GoHighLevel Private Integration token (`pit-…`) used by the hourly identity sync (contacts) AND the daily won-opportunity import (Wave 7) | GHL sub-account → Settings → Integrations → Private Integrations. Scopes required: `contacts.readonly`, `contacts.write`, `opportunities.readonly` | Recommended every 90 days (does not auto-expire) |
+| `ASPENDORA_GHL_TOKEN` | GoHighLevel Private Integration token (`pit-…`) used by the hourly identity sync (contacts) AND the daily won-opportunity import (Wave 7) | Deployed 2026-07-26 from `GHL_API_KEY` in `~/.secrets/.env` (primary Aspendora sub-account; pairs with `GHL_LOCATION_ID`). To regenerate: GHL sub-account → Settings → Integrations → Private Integrations. Scopes: `contacts.readonly`, `contacts.write`, `opportunities.readonly` (all verified live) | Recommended every 90 days (does not auto-expire) |
 | `ASPENDORA_GHL_LOCATION_ID` | GHL sub-account (location) id the contacts belong to | GHL sub-account → Settings → Business Profile (or the URL when inside the sub-account) | n/a (not secret, but env-configured) |
 
 Optional (non-secret) tuning:
