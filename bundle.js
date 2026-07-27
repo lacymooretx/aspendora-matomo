@@ -58,7 +58,12 @@
                 storeId('ghl:' + c);
             } else {
                 var saved = localStorage.getItem('asp_uid');
-                if (saved) { applyId(saved); }
+                if (saved) {
+                    applyId(saved);
+                    // the pageview fired before this async bundle ran — one ping
+                    // attaches the user id to the current visit
+                    if (window._paq) { _paq.push(['ping']); }
+                }
             }
         } catch (e) {}
         document.addEventListener('submit', function (e) {
