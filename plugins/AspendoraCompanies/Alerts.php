@@ -32,13 +32,18 @@ class Alerts
         if (!$lines) {
             return;
         }
-        $mail = new Mail();
-        $mail->setDefaultFromPiwik();
-        $mail->addTo($to);
-        $mail->setSubject('[Aspendora Analytics] Hot activity — last 24h');
-        $mail->setBodyText(implode("\n", $lines)
-            . "\n\nDetails: https://analytics.aspendora.com/ → Visitors → Known Visitors / Companies\n");
-        $mail->send();
+        $body = '<pre style="font-family:monospace;">' . htmlspecialchars(implode("\n", $lines))
+            . "</pre><p>Details: https://analytics.aspendora.com/ → Visitors → Known Visitors / Companies</p>";
+        if (class_exists(\Piwik\Plugins\AspendoraInsights\Mailer::class)) {
+            \Piwik\Plugins\AspendoraInsights\Mailer::send($to, '[Aspendora Analytics] Hot activity — last 24h', $body);
+        } else {
+            $mail = new Mail();
+            $mail->setDefaultFromPiwik();
+            $mail->addTo($to);
+            $mail->setSubject('[Aspendora Analytics] Hot activity — last 24h');
+            $mail->setWrappedHtmlBody($body);
+            $mail->send();
+        }
         $this->logger->info('AspendoraCompanies: hot-activity digest sent to {t} ({n} lines)', [
             't' => $to, 'n' => count($lines),
         ]);

@@ -4,7 +4,6 @@ namespace Piwik\Plugins\AspendoraInsights;
 
 use Piwik\Access;
 use Piwik\Log\LoggerInterface;
-use Piwik\Mail;
 use Piwik\Plugins\SitesManager\API as SitesManagerAPI;
 
 /**
@@ -90,12 +89,7 @@ PROMPT;
             . implode('<div style="height:24px;"></div>', $sections)
             . '<p style="color:#999;font-size:12px;margin-top:32px;">Prepared automatically by Aspendora Analytics.</p>'
             . '</div>';
-        $mail = new Mail();
-        $mail->setDefaultFromPiwik();
-        $mail->addTo($to);
-        $mail->setSubject('Aspendora Analytics — Weekly Insights (' . date('M j') . ')');
-        $mail->setWrappedHtmlBody($html);
-        $mail->send();
+        Mailer::send($to, 'Aspendora Analytics — Weekly Insights (' . date('M j') . ')', $html);
         $this->logger->info('AspendoraInsights: weekly digest sent to {t} ({n} sites)', [
             't' => $to, 'n' => count($sections),
         ]);
