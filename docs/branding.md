@@ -39,20 +39,24 @@ it through `TCPDF_FONTS::addTTFfont`.
 
 ## Logo files
 
-Copied into `plugins/AspendoraTheme/images/` — copied, not derived. The gradient in the peak mark
-is fixed; **recolouring it, faking a reverse with a CSS filter, or rebuilding the lockup are all
-explicitly off-limits.**
+Copied into `plugins/AspendoraTheme/images/` — copied or rendered with the brand's own
+`assets/logo/source/render-png.py`, never hand-derived. The gradient in the peak mark is fixed;
+**recolouring it, faking a reverse with a CSS filter, or rebuilding the lockup are all explicitly
+off-limits.** The SVGs in `assets/logo/svg/` are the master; everything else is an export.
 
 | Theme file | Brand source | Used for |
 |---|---|---|
-| `logo.png` | `assets/logo/logo.webp` (447×180, full colour) | PDF report cover, any light background |
-| `logo-header.png` | `assets/logo/letterhead-logo-full-reverse-sourcefw_.png` (all-white reverse) | top bar, login nav, report email header — all navy surfaces |
+| `logo.svg` | `assets/logo/svg/aspendora-logo-dark.svg` (white wordmark, gradient mark) | top bar and login nav — the sanctioned file for navy grounds. Matomo prefers the SVG when the theme ships one |
+| `logo.png` | `assets/logo/png/aspendora-logo-894.png` (full colour) | PDF report cover, any light background |
+| `logo-header.png` | the same `aspendora-logo-dark.svg`, rendered to 894px via `render-png.py` | report email header — HTML email can't render SVG |
 | `favicon.png`, `favicon-256.png` | `assets/favicon/mark-icon-{32,512}-navy.png` | browser tab. The isolated peak is the only element allowed to stand alone, and only in square icon slots |
 
-**Known deviation:** the brand minimum on-screen width for the full lockup is 120px. Matomo's top
-bar cannot give the lockup that much height while keeping its clear space, so it renders smaller
-in app chrome than the brand standard. Accepted for internal chrome; do not repeat it in
-customer-facing output.
+**Sizing:** 48px tall in the top bar and on the login page — the brand's header standard, which at
+the 2.4845:1 lockup ratio lands the width on ~119px, i.e. exactly the 120px minimum below which
+*technologies* stops resolving. Both rules are satisfied at that one size; it isn't a number to
+nudge. Matomo's 64px bar leaves 8px of clear space rather than the 25%-of-height (12px) the brand
+asks for, but nothing encroaches on it. Raising the bar to 72px was tried and rejected —
+`.nav-wrapper` isn't a flex container in Morpheus and the top-menu items collapse onto the logo.
 
 ## PDF / document reports
 
@@ -84,8 +88,14 @@ Reproduced verbatim because they are short and constrain everything above:
 
 ## Open gaps (upstream of this repo — not ours to fix here)
 
-- **No vector logo master exists anywhere.** Every file is raster. Called out in the brand folder
-  as the highest-value branding fix available.
-- The live site favicon is the full lockup, illegible at 32px; the `mark-icon-*` files this repo
-  uses are the better stopgap.
-- Print logo red (`#ab0534`) and web logo red (`#b71a28`) don't match — inherited drift.
+- Print logo red (`#ab0534` / `#aa0c31` in the Illustrator masters) and web logo red (`#b71a28`)
+  don't match — inherited drift. The SVG set follows the web. Old printed stock won't match new
+  work. `assets/logo/source/red-options/` holds candidate resolutions; until one is picked, this
+  repo follows the web red, which is what the SVG masters use.
+- The dark end of the mark's gradient also differs between print and web (neutral near-black vs
+  dark burgundy). Same resolution.
+- *technologies* tracking is forked between the Illustrator masters and the web logo — the SVGs
+  match the web, which is what customers have seen since 2022.
+
+The "no vector master" gap this file originally recorded was **closed on 2026-08-14** — the brand
+folder now ships a full SVG set built from the Illustrator master, and this repo uses it.

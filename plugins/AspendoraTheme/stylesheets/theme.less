@@ -18,18 +18,28 @@
         U+FEFF, U+FFFD;
 }
 
-// images/logo-header.png is the brand's all-white reverse lockup
-// (assets/logo/letterhead-logo-full-reverse-sourcefw_.png), because every surface it appears on
-// — the top bar, the login page nav, the report email header — is painted with
-// @theme-color-header-background, i.e. brand navy. Do NOT substitute a CSS filter or a recoloured
-// derivative: the mark's gradient is fixed and recolouring it is explicitly off-limits.
-// The full-colour images/logo.png is the large logo, for light backgrounds only (PDF cover page).
+// Logo sizing.
 //
-// Known deviation: the brand minimum on-screen width for the full lockup is 120px, at which
-// "technologies" stops resolving. Matomo's top bar can't give the lockup that much height and
-// still keep its clear space, so it runs smaller here than the brand standard. Internal app
-// chrome, not customer-facing material — but it is a deviation, not an oversight.
-#logo.brand-logo img {
-    max-height: 34px;
+// 48px tall is the brand's header standard, and at the lockup's 2.4845:1 ratio that lands the
+// width on ~119px — i.e. the 120px minimum below which "technologies" stops resolving. Both
+// brand rules are satisfied at exactly this size, so it is not a number to nudge.
+//
+// Matomo's top bar is 64px, leaving 8px above and below. That is short of the 25%-of-height
+// clear space the brand asks for (12px), but nothing encroaches on it — the top-menu items sit
+// far to the right and page content starts below the bar. Raising the bar to 72px was tried and
+// rejected: .nav-wrapper isn't a flex container in Morpheus and the top-menu items collapse.
+//
+// The artwork itself is never recoloured or filtered — images/logo.svg is the brand's vector
+// master for navy grounds (white wordmark, gradient mark) and images/logo-header.png is the same
+// variant rendered to PNG for HTML email, which can't do SVG.
+// Both selectors carry two IDs plus the class on purpose: core caps the logo with
+// `#root #logo img { max-height: 32px }` and `#loginPage #logo img { max-height: 32px }`, and a
+// single-ID rule loses to them silently — the logo just renders at 32px with no error anywhere.
+// No vertical centring needed: core already sets `#root #logo > a { display: flex; align-items:
+// center }`.
+#root #logo.brand-logo img,
+#loginPage #logo.brand-logo img {
+    height: 48px;
+    max-height: none;
     width: auto;
 }

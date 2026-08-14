@@ -315,3 +315,39 @@ for the PDF to be branded and set to US Letter.
 **Still open:** PDF body font is DejaVu Sans. TCPDF needs a converted TTF and the brand folder
 ships woff2 only — fixing it means adding a Plus Jakarta Sans TTF to the repo and running
 `TCPDF_FONTS::addTTFfont`. Noted in `docs/branding.md`.
+
+## 2026-08-14 — Wave 9c: adopt the vector logo master (approved to proceed)
+
+The brand repo gained a full SVG set (built from `letterhead-logo.ai`) between Wave 9b and this
+step, closing the "no vector master" gap that `docs/branding.md` had recorded as open.
+
+- [x] **SVG is now the UI logo.** `images/logo.svg` ← `assets/logo/svg/aspendora-logo-dark.svg`
+  (white wordmark + gradient mark — the sanctioned file for navy grounds, per the backgrounds
+  table). Restored the SVG-first branch in the `_logo.twig` override, which Wave 9 had removed
+  only because no SVG existed at the time. `images/logo.png` ← `png/aspendora-logo-894.png`.
+  `images/logo-header.png` regenerated from the same dark SVG with the brand's own
+  `source/render-png.py` (macOS QuickLook + PIL alpha solve) — HTML email can't render SVG, and
+  the PNG exports don't include the dark variant. A render, not a derivation.
+- [x] **Logo now sized to the brand standard, and the earlier "known deviation" is gone.**
+  48px tall × 119px wide: 48px is the brand header standard and, at the lockup's 2.4845:1 ratio,
+  it lands exactly on the 120px minimum width below which *technologies* stops resolving. Both
+  rules are met at that one size.
+- [x] **Two CSS specificity traps, both silent.** Core caps the logo with
+  `#root #logo img { max-height: 32px }` and `#loginPage #logo img { max-height: 32px }` — two
+  IDs each. The first attempt used `#logo.brand-logo img` (one ID + class), lost, and rendered at
+  32px with no error anywhere; only measuring `getBoundingClientRect()` in the browser caught it.
+  Final selectors carry two IDs plus the class.
+- [x] **Rejected:** raising the top bar 64px → 72px to buy the full 25% clear space.
+  `.nav-wrapper` isn't a flex container in Morpheus and forcing it collapses the top-menu items
+  onto the logo (verified in the browser before backing it out). 8px of clear space it is —
+  nothing encroaches on it.
+- [x] **Verified from the shipped CSS** (no injected test styles): logo is `logo.svg`, 48×119,
+  aspect 2.4844, top bar unchanged at 64px; login page serves the same SVG with the branded title.
+- [x] `docs/branding.md` updated: SVG file table, the sizing rationale, and the closed gap. The
+  remaining upstream gaps are now the print-vs-web red drift and the forked *technologies*
+  tracking — `assets/logo/source/red-options/` holds candidate resolutions; this repo follows the
+  web red, which is what the SVG masters use.
+
+**Still open:** PDF body font is DejaVu Sans. Needs a Plus Jakarta Sans **TTF** committed to the
+repo and run through `TCPDF_FONTS::addTTFfont` — the brand folder ships no TTF/OTF and the
+webfont this theme uses is woff2, which TCPDF can't read.
