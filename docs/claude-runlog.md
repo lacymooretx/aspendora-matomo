@@ -156,3 +156,49 @@ app-build-progress.md; Wave 6 = reverse-IP company reports + alerts.
   won-opp import clean (0 rows — no won opportunities in the location yet).
 - **Remaining user actions:** only `?asp_c={{contact.id}}` decoration in GHL
   email templates + optional ipinfo.io token.
+
+## 2026-08-14 — Fix: broken images across the UI (Morpheus icons never shipped)
+
+**Goal:** the Visits-in-real-time widget (and every report with a browser / OS /
+device / country / plugin icon) rendered broken-image placeholders.
+
+- [x] **Diagnosed** — every icon URL 404s in prod:
+  `curl https://analytics.aspendora.com/plugins/Morpheus/icons/dist/{browsers/CH,os/WIN,flags/us,devices/desktop,plugins/cookie}.png`
+  → 404 ×5. `plugins/Morpheus/icons` is empty both in `/var/www/html` and in
+  `/usr/src/matomo` inside `aspendora-matomo-web`.
+- [x] **Root cause** — `plugins/Morpheus/icons` is a **git submodule**
+  (matomo-org/matomo-icons). Our source tree is never
+  `git submodule update --init`ed, so all 18 submodule paths are empty
+  directories (`git submodule status` → all `-` prefixed). `deploy/Dockerfile`
+  did `rm -rf /usr/src/matomo` and replaced the upstream tree with our
+  checkout, so everything the 5.12.0 release tarball ships *from a submodule*
+  was dropped: `plugins/Morpheus/icons` (5.3M — all UI icons),
+  `plugins/TagManager` (6.6M) and `misc/log-analytics` (192K). The other 15
+  submodules are optional plugins the official image doesn't ship either, so
+  they were never a regression.
+- [x] **Fix** — `deploy/Dockerfile`: `mv /usr/src/matomo /usr/src/matomo-upstream`
+  instead of `rm -rf`, then after the source COPY restore any of those three
+  bundled paths our checkout left empty from the upstream tree
+  (`cp -a`, `chown www-data`), then drop the upstream copy. Idempotent: if a
+  path is ever populated in the fork (submodule initialized, or vendored) the
+  restore skips it. Base image is `matomo:5-apache` = 5.12.0, identical to the
+  fork base — versions must stay in step.
+- [x] **Files changed** — `deploy/Dockerfile`, `deploy/README.md`,
+  `docs/claude-runlog.md`, `~/code/vultr-proxmox/services/aspendora-matomo/README.md`.
+- [x] **Deployed** — rsync src → `docker build -t aspendora/matomo:local` →
+  `up -d --force-recreate --renew-anon-volumes matomo-web` (documented flow).
+  Verified in the image before recreating the container.
+- [x] **Verified live** — pulled `Live.getLastVisitsDetails` (10 visits), walked
+  every icon path the API returned (21 distinct: browsers, devices, flags, os,
+  plugins) and curled each → **21/21 HTTP 200, 0 broken**. Matomo API 200,
+  AspendoraIdentity/AspendoraCompanies APIs still 200, no errors in
+  container logs. `plugins/Morpheus/icons/dist` = 11 entries, TagManager 40,
+  misc/log-analytics 6.
+
+**Note (not fixed, pre-existing):** `token_auth` is passed in the query string
+for API calls, so it lands in the Apache access log. Prefer POSTing `token_auth`
+in the request body for anything scripted.
+
+**Next:** none required. TagManager files now ship but the plugin stays
+DEACTIVATED (it was never in the DB); activate from Administration → Plugins
+only if Tag Manager is actually wanted.

@@ -12,9 +12,24 @@ COPY . /src
 WORKDIR /src
 RUN composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
 
+# IMPORTANT: our source tree carries Matomo's git submodules as EMPTY directories (they are
+# never `submodule update --init`ed for a build), so replacing /usr/src/matomo wholesale drops
+# everything the release tarball ships from a submodule. Most visibly plugins/Morpheus/icons —
+# every browser/OS/device/country/plugin icon in the UI, which 404s and renders as a broken
+# image in the visitor log. Keep the upstream tree aside and restore any bundled path our
+# checkout left empty. Base tag and fork base must stay on the same Matomo version (5.12.0).
 FROM matomo:5-apache
-RUN rm -rf /usr/src/matomo
+RUN mv /usr/src/matomo /usr/src/matomo-upstream
 COPY --from=vendor --chown=www-data:www-data /src /usr/src/matomo
+RUN set -eux; \
+    for p in plugins/Morpheus/icons plugins/TagManager misc/log-analytics; do \
+      if [ -z "$(ls -A "/usr/src/matomo/$p" 2>/dev/null || true)" ]; then \
+        mkdir -p "/usr/src/matomo/$p"; \
+        cp -a "/usr/src/matomo-upstream/$p/." "/usr/src/matomo/$p/"; \
+        chown -R www-data:www-data "/usr/src/matomo/$p"; \
+      fi; \
+    done; \
+    rm -rf /usr/src/matomo-upstream
 
 # Blocker-safe alias: the rrweb recorder ships as /vendor.js (loaded by bundle.js from the
 # bland first-party hub domains; "rrweb" in a URL would trip content-blocker filename rules)
