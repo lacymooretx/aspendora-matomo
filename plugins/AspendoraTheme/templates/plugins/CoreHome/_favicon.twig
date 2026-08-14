@@ -1,0 +1,9 @@
+{# Aspendora white-label: unlike logos, favicons have no per-theme fallback in
+   CustomLogo — core points straight at plugins/CoreHome/images/. Same structure as core,
+   with our brand icon as the default. A favicon uploaded in Administration → Brand still wins. #}
+{% if isCustomLogo and hasCustomFavicon and customFavicon is defined and customFavicon %}
+    <link rel="shortcut icon" href="{{ customFavicon }}"/>
+{% else %}
+    <link rel="shortcut icon" href="plugins/AspendoraTheme/images/favicon.png"/>
+    <link rel="icon" type='image/png' sizes='256x256' href="plugins/AspendoraTheme/images/favicon-256.png"/>
+{% endif %}

@@ -1,7 +1,7 @@
 {
     "name": "AspendoraWhiteLabel",
-    "description": "Declutters the UI for client-facing use: hides Marketplace teasers, matomo.org promos and feedback prompts; optional brand name in the browser title. Original Aspendora plugin.",
-    "version": "1.0.0",
+    "description": "Renames the product to Aspendora Analytics across the UI (generated translation overrides — see tools/rebrand-translations.php) and hides the upsell, marketplace and feedback chrome for client-facing use. Look and feel live in AspendoraTheme. Original Aspendora plugin.",
+    "version": "2.0.0",
     "theme": false,
     "require": { "matomo": ">=5.0.0-b1,<6.0.0-b1" },
     "authors": [{ "name": "Aspendora Technologies", "homepage": "https://www.aspendora.com" }],

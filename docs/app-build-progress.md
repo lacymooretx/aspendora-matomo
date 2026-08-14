@@ -131,3 +131,63 @@ EspoCRM program built its own site tracker. Reconciled per the actual stack deci
 - Matomo `bundle.js` remains THE site tracker; Espo's AspTrackJs is dormant by decision.
 - Matomo's `lead_score` stays internal (Known Visitors report + GHL legacy tag); Espo's own
   scoring/lifecycle react to the bridged data — no duplicated scoring.
+
+## Wave 9 — Aspendora white-label rebrand (2026-08-14)
+
+**Goal:** the instance reads as an Aspendora product, not a recoloured Matomo. User decisions
+recorded up front: full white-label **plus** theme; product name **"Aspendora Analytics"**;
+Matomo attribution **removed from the UI but kept in the source, LEGALNOTICE and the
+About/System Check pages** (Matomo is GPLv3 — rebranding is permitted; stripping the source
+notices would not be). Brand reference: `~/code/aspendora-existingwebsite` (the live site) —
+brand blue `#2563eb` / hover `#1d4ed8` on a slate scale, navy `#0f172a` chrome, Plus Jakarta Sans.
+
+**Deliverables:**
+
+- [x] **AspendoraTheme** (new, `"theme": true`) — the look:
+  - `Theme.configureThemeVariables` sets the full palette as `[light, dark]` pairs (Matomo 5
+    resolves the theme once per mode). Both modes verified present in the compiled CSS.
+  - Plus Jakarta Sans self-hosted (latin subset, variable weight, 27KB, SIL OFL) — no external
+    font CDN, matching the cookieless/first-party posture of the tracker.
+  - Brand assets: `images/logo.png` (full-colour wordmark, large/PDF placements),
+    `images/logo-header.png` (knocked out to near-white — every surface it lands on, top bar,
+    login nav and report email header, is painted with `colorHeaderBackground` = navy),
+    `images/favicon.png` + `favicon-256.png` ("A" + arc mark on navy). Core's `CustomLogo`
+    picks the logos up automatically from the active theme; favicons have no such fallback, so
+    `_favicon.twig` is overridden.
+  - Template overrides for the places the wordmark is hardcoded rather than translated:
+    `layout.twig` (4-line `extends` + `pageTitle` block — deliberately not a copy, so upstream
+    merges stay cheap), `@CoreHome/_logo.twig`, `_favicon.twig`, `_htmlEmailHeader.twig`,
+    `_htmlEmailFooter.twig`, `@Login/loginLayout.twig`, `@ScheduledReports/unsubscribe.twig`.
+    The last two extend `@Morpheus/layout.twig` **by name** in core, walking past the theme's
+    own layout override — they now extend the unqualified `layout.twig` instead.
+  - `Email.configureEmailStyle` sets `brandNameLong`.
+- [x] **AspendoraWhiteLabel 2.0.0** — the naming:
+  - `tools/rebrand-translations.php` generates `lang/en.json` from the whole English catalogue
+    (335 strings / 32 namespaces). Re-runnable after an upstream merge — that's what makes the
+    rebrand survive one. Skips admin/diagnostic namespaces (Installation, CoreUpdater,
+    Diagnostics, CorePluginsAdmin) and the deactivated promo plugins, per the attribution
+    decision; skips legal-entity and other-product strings ("… GmbH", "Matomo Cloud",
+    "formerly known as"); protects printf placeholders and lowercase URLs/filenames.
+  - `TranslationLoader` + `config/config.php` — **required**, not incidental: Matomo registers
+    plugin lang directories in `_glob()` (alphabetical) order and merges with
+    `array_replace_recursive`, so "AspendoraWhiteLabel" losing to "CoreAdminHome" silently
+    reverted every override. A DI decorator moves this plugin's directory to the end of the list.
+  - CSS also hides CorePluginsAdmin's permanent "Tag Manager" top-menu item, which links to
+    `action=tagManagerTeaser` — an ad for a plugin that isn't enabled here.
+- [x] **Deactivated** (DB state, not code): Marketplace, ProfessionalServices, Tour, Feedback,
+  RssWidget. **Note:** the top-level Funnels / Forms / Media / A/B Tests / Heatmaps / Session
+  Recordings / Custom Reports / Crashes menu entries that disappeared were
+  ProfessionalServices **upsell ads for Matomo's paid plugins**, not features. The Aspendora
+  equivalents are unchanged, under Behaviour and Visitors (verified via
+  `API.getReportMetadata`: 90 reports, all 17 Aspendora ones present).
+- [x] **Verification:** `php -l` clean on all new PHP; login page, dashboard, General settings,
+  Anonymize data all render 0 occurrences of "Matomo" (19 and 11 "Aspendora" on the two
+  settings pages) with branded titles, logo and favicon; Manage Plugins still says Matomo 85
+  times **by design**; light+dark palettes both compiled; font and all four image assets serve
+  200; no PHP errors in the container log; Aspendora plugin APIs still 200.
+
+**PHASE COMPLETE — awaiting approval to proceed.**
+
+Deliberately left for a follow-up decision: PDF/scheduled-report body styling still uses
+Matomo's `ReportRenderer` colour constants (the email header/footer are branded, the PDF
+interior is not), and Tag Manager remains deactivated — see the runlog.

@@ -28,6 +28,33 @@ The restore is skip-if-populated, so initializing or vendoring any of these in t
 over. Keep the `FROM matomo:5-apache` tag on the same Matomo version as the fork base (5.12.0) —
 that's what makes borrowing these assets safe.
 
+## Branding (white label)
+The instance ships as **Aspendora Analytics**. Two plugins own this, and they're separable:
+
+- **`AspendoraTheme`** (a Matomo theme) — palette, typeface, logos, favicon, and template
+  overrides for the handful of spots where the Matomo wordmark is hardcoded rather than
+  translated. Colours are set in PHP via `Theme.configureThemeVariables` as `[light, dark]`
+  pairs, not in LESS. Logos are picked up from `plugins/AspendoraTheme/images/` automatically
+  by core's `CustomLogo` because it's the active theme; a logo uploaded in Administration →
+  Brand still wins over both.
+- **`AspendoraWhiteLabel`** — the name. `lang/en.json` is **generated**; edit
+  `tools/rebrand-translations.php` and re-run it (see the header comment for the invocation)
+  rather than hand-editing, especially after an upstream merge.
+
+Two traps worth knowing before you touch either:
+- Plugin translation directories are merged in **alphabetical** order, so an override in
+  `AspendoraWhiteLabel` loses to `CoreAdminHome` etc. `TranslationLoader` (a DI decorator
+  registered in `config/config.php`) moves our directory to the end of the list. Remove it and
+  the whole rebrand silently reverts.
+- `Login/loginLayout.twig` and `ScheduledReports/unsubscribe.twig` extend
+  `@Morpheus/layout.twig` **by name**, which skips a theme's own `layout.twig` override. Both
+  are overridden to extend the unqualified `layout.twig`. Any future core template doing the
+  same will need the same treatment.
+
+Matomo attribution is removed from the reporting UI and from report emails, and deliberately
+kept in the source, `LEGALNOTICE`, and the admin/diagnostic pages (Manage Plugins, System
+Check, Installation, CoreUpdater) — those namespaces are on the generator's skip list.
+
 ## Customizing
 - **Prefer plugins over core edits** — Matomo's plugin API is the supported extension path and
   survives upstream merges. Create under `plugins/<AspendoraThing>/`, commit on `aspendora`.

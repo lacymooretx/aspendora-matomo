@@ -1,0 +1,10 @@
+{
+    "name": "AspendoraTheme",
+    "description": "Aspendora Technologies brand theme: the aspendora.com palette (brand blue on slate, navy chrome), Plus Jakarta Sans, the Aspendora logo and favicon, and template overrides for the handful of places where the Matomo wordmark is hardcoded rather than translated. Original Aspendora plugin.",
+    "version": "1.0.0",
+    "theme": true,
+    "stylesheet": "stylesheets/theme.less",
+    "require": { "matomo": ">=5.0.0-b1,<6.0.0-b1" },
+    "authors": [{ "name": "Aspendora Technologies", "homepage": "https://www.aspendora.com" }],
+    "license": "GPL v3+"
+}

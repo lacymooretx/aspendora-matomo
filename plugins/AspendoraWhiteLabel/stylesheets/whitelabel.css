@@ -1,4 +1,15 @@
-/* Aspendora white-label: hide upsell/promo chrome for client-facing use. */
+/* Aspendora white-label: hide upsell/promo chrome for client-facing use.
+ *
+ * Most of the promo surface is gone because the plugins that generate it are deactivated in
+ * this deployment (Marketplace, ProfessionalServices, Tour, Feedback, RssWidget). What's left
+ * here is chrome that core injects regardless of those plugins, plus belt-and-braces selectors
+ * in case one of them is ever switched back on. */
+
+/* CorePluginsAdmin adds a permanent "Tag Manager" item to the top menu that links to
+ * action=tagManagerTeaser — an ad for a plugin that isn't enabled here, not the feature. */
+#topmenu-corepluginsadmin,
+li:has(> #topmenu-corepluginsadmin) { display: none !important; }
+
 .marketplace-max-sites-reached,
 .pluginsSummary .promo,
 #notificationContainer .notification-info a[href*="matomo.org"],

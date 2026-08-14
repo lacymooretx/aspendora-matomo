@@ -1,0 +1,12 @@
+{# Aspendora white-label.
+
+   Morpheus's layout hardcodes "Matomo" in the <title>. Rather than copy the whole layout
+   (which would have to be re-reconciled on every upstream merge) this extends it and
+   replaces the one block that needs to change. #}
+{% extends "@Morpheus/layout.twig" %}
+
+{% block pageTitle %}
+    {%- if title is defined -%}{{ title }} - {% endif -%}
+    {%- if categoryTitle is defined -%}{{ categoryTitle }} - {% endif -%}
+    Aspendora Analytics
+{%- endblock %}

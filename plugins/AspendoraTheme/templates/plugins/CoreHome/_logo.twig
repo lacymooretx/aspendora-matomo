@@ -1,0 +1,15 @@
+{# Aspendora white-label: core's version hardcodes "Matomo" in the link title and the img
+   alt, and prefers an SVG logo whose only fallback is Matomo's own wordmark. We ship raster
+   logos (images/logo.png, images/logo-header.png), which Piwik\Plugins\CoreAdminHome\CustomLogo
+   picks up automatically from the active theme, so the SVG branch is dropped entirely.
+   A logo uploaded in Administration → Brand still wins — that's resolved inside logoHeader. #}
+<span id="logo" class="logo brand-logo {% if centeredLogo is defined and centeredLogo %}center{% endif %}">
+    {% if logoLink is not defined or logoLink is not empty %}
+    <a href="{{ logoLink|default('index.php') }}" tabindex="3" title="Aspendora Analytics">
+    {% endif %}
+        <img src='{% if useLargeLogo|default(false) %}{{ logoLarge }}{% else %}{{ logoHeader }}{% endif %}?aspendora'
+             alt="Aspendora Analytics" />
+    {% if logoLink is not defined or logoLink is not empty %}
+    </a>
+    {% endif %}
+</span>

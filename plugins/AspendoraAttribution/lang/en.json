@@ -3,6 +3,6 @@
         "Attribution": "Attribution",
         "ChannelAttribution": "Multi-channel conversion attribution",
         "Channel": "Channel",
-        "Documentation": "Conversion credit per marketing channel under six attribution models (30-day lookback, time-decay half-life 7 days). Conversions = Matomo goal conversions plus event conversions (default: the Newsletter signup event; configurable via ASPENDORA_ATTRIB_EVENTS). Caveat: cookieless tracking fragments anonymous cross-day journeys, so anonymous conversions mostly credit the converting visit's channel; identified (userId) visitors attribute across their full journey."
+        "Documentation": "Conversion credit per marketing channel under six attribution models (30-day lookback, time-decay half-life 7 days). Conversions = Aspendora goal conversions plus event conversions (default: the Newsletter signup event; configurable via ASPENDORA_ATTRIB_EVENTS). Caveat: cookieless tracking fragments anonymous cross-day journeys, so anonymous conversions mostly credit the converting visit's channel; identified (userId) visitors attribute across their full journey."
     }
 }

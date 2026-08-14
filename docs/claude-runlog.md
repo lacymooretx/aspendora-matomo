@@ -202,3 +202,65 @@ in the request body for anything scripted.
 **Next:** none required. TagManager files now ship but the plugin stays
 DEACTIVATED (it was never in the DB); activate from Administration → Plugins
 only if Tag Manager is actually wanted.
+
+## 2026-08-14 — Wave 9: white-label rebrand (build + deploy)
+
+Phase plan and verification table: `app-build-progress.md`. Execution notes and the
+things that bit us:
+
+- [x] **Brand source** — user pointed at `~/code/aspendora-existingwebsite` (the live
+  WordPress/Bricks site) rather than the `aspendora-site` Next.js rebuild. Palette taken
+  from actual usage frequency in `bricks-work/*.css`: `#2563eb` brand / `#1d4ed8` hover /
+  `#0f172a`–`#0f1729` navy ink / slate 50–700 / `#22c55e` success / `#ef4444` error, font
+  "Plus Jakarta Sans". Logo master found at 1800x894 in `~/code/controlr/.../logo-dark.png`
+  (the `aspendora-site/public/brand` copies are 148px and 447px).
+- [x] **Knockout logo** — the wordmark is black on transparent, so it is invisible on the
+  navy top bar. Generated with ImageMagick `-fuzz 20% -fill "#F8FAFC" -opaque black`, which
+  recolours the wordmark and leaves the crimson arc; verified visually before shipping.
+  Favicon composed from the "A" glyph + the arc on navy (the 512px brand "favicon" is the
+  whole wordmark squeezed into a square — illegible at 32px).
+- [x] **No local PHP or Docker on this host** — the translation generator is run on
+  docker-apps against the rsynced source: `docker run --rm -v /opt/services/aspendora-matomo/src:/src
+  -w /src php:8.2-cli php plugins/AspendoraWhiteLabel/tools/rebrand-translations.php`, then
+  `scp` the generated `lang/en.json` back. Same route used for `php -l`.
+- [x] **Bug 1 (generator)** — first pass produced "Aspendora.org" and "Aspendora, formerly
+  known as Aspendora". Fixed with a `(?!\.[a-z])` lookahead and a "formerly known as" skip.
+- [x] **Bug 2 (generator)** — overrides for our own and vendored plugins (Aspendora*,
+  LoginOIDC) are pointless: third-party plugins load *after* this one, so they overwrite the
+  override. Those namespaces are now skipped and the two affected strings were rebranded at
+  source instead.
+- [x] **Bug 3 — the real one.** Overrides had no effect at all in the UI. Cause:
+  `Plugin\Manager::getAllPluginsNames()` returns `readPluginsDirectory()` — a `_glob()`, i.e.
+  **alphabetical** — and `JsonFileLoader` merges directories with `array_replace_recursive`,
+  last wins. "AspendoraWhiteLabel" < "CoreAdminHome", so core reloaded its own strings on top
+  of ours. Fixed with `TranslationLoader`, a DI decorator on
+  `Piwik\Translation\Loader\LoaderInterface` (registered in the plugin's `config/config.php`)
+  that moves this plugin's lang directory to the end of the list. Decorating the *outer*
+  loader means the reorder happens before `LoaderCache`, so the merged result is still cached
+  and under a cache key that reflects the new order. Verified: General settings went from
+  14 "Matomo" to 0.
+- [x] **Deploy gotcha (new, worth remembering)** — `--renew-anon-volumes` replaces the webroot
+  but `tmp` is a **named** volume, so Matomo's merged CSS/JS assets survive the redeploy. A
+  stylesheet-only change with no `plugin.json` version bump does not change the asset cache
+  buster and simply does not appear. **Run `./console core:clear-caches` after every deploy**
+  (added to the service runbook).
+- [x] **Not a regression, investigated as one** — after deactivating ProfessionalServices the
+  left menu lost Funnels/Forms/Media/A-B Tests/Heatmaps/Session Recordings/Custom Reports/
+  Crashes. Those were ProfessionalServices *promos for Matomo's paid plugins*
+  (`shouldShowPromoForPlugin`), not our features. Confirmed via `API.getReportMetadata` that
+  all 17 Aspendora reports are still registered under Behaviour/Visitors/Acquisition.
+- [x] **TagManager** — correcting the note in the icons-fix entry above: restoring the bundled
+  files did NOT leave it deactivated in the UI sense; CorePluginsAdmin adds a permanent
+  "Tag Manager" top-menu item pointing at `action=tagManagerTeaser` whenever the files are on
+  disk. The plugin itself is genuinely deactivated (`plugin:deactivate` reports "already
+  deactivated", it is absent from `config.ini.php`); only the teaser link was showing. The
+  link is now hidden by the white-label CSS. To actually use Tag Manager:
+  `./console plugin:activate TagManager` and drop the `#topmenu-corepluginsadmin` rule.
+
+**Deploy sequence used (4 rebuild/recreate cycles as issues were found):** rsync → build →
+`up -d --force-recreate --renew-anon-volumes matomo-web` → wait for webroot → `plugin:activate
+AspendoraTheme` → `plugin:deactivate Tour ProfessionalServices Marketplace Feedback RssWidget`
+→ `core:clear-caches`.
+
+**Next:** phase gate — awaiting approval. Open items: PDF report interiors still use Matomo's
+`ReportRenderer` colour constants; Tag Manager left off.

@@ -1,0 +1,65 @@
+{# Aspendora white-label: the unsubscribe page report recipients land on. Same as core except
+   it extends the unqualified 'layout.twig' (so the branded <title> applies), the logo points
+   here instead of matomo.org, and the "powered by" link that core shows whenever a custom logo
+   is in use is dropped — same call as the report email footer. #}
+{% extends 'layout.twig' %}
+
+{% block meta %}
+    <meta name="robots" content="noindex,nofollow">
+{% endblock %}
+
+{% set title %}{{ 'ScheduledReports_ReportUnsubscribe'|translate }}{% endset %}
+
+{% set bodyId = 'loginPage' %}
+{% set bodyClass = 'scheduledReportsUnsubscribePage' %}
+
+{% block body %}
+
+    {{ postEvent("Template.beforeTopBar", "login") }}
+    {{ postEvent("Template.beforeContent", "login") }}
+
+    {% include "_iframeBuster.twig" %}
+
+    <div id="notificationContainer">
+    </div>
+    <nav>
+        <div class="nav-wrapper">
+            {% include "@CoreHome/_logo.twig" with { 'logoLink': 'index.php', 'centeredLogo': true, 'useLargeLogo': false } %}
+        </div>
+    </nav>
+
+    <section class="loginSection row">
+        <div class="col s12 m6 l4">
+
+            <div class="contentForm loginForm">
+                {% embed 'contentBlock.twig' with {'title': 'ScheduledReports_ReportUnsubscribe'|translate} %}
+                {% block content %}
+                    {% if error is defined %}
+                        <div vue-entry="CoreHome.Notification"
+                             noclear="true"
+                             context="&quot;error&quot;">
+                            <strong>{{ 'General_Error'|translate }}</strong>: {{ error|raw }}<br/>
+                        </div>
+                    {% elseif success is defined %}
+                        <p class="message">{{ 'ScheduledReports_SuccessfullyUnsubscribed'|translate('<strong>'~reportName|rawSafeDecoded~'</strong>')|raw }}</p>
+                    {% else %}
+                        <form method="POST">
+                            <div class="row">
+                                <div class="col s12">
+                                    <br/>
+                                    <p>{{ 'ScheduledReports_UnsubscribeReportConfirmation'|translate('<strong>'~reportName|rawSafeDecoded~'</strong>')|raw }}</p>
+                                    <br /><br /><br />
+                                    <input type="hidden" name="nonce" id="unsubscribe_form_nonce" value="{{ nonce }}"/>
+                                    <input class="submit btn" type="submit" name="confirm" value="{{ 'ScheduledReports_Unsubscribe'|translate }}"/>
+                                </div>
+                            </div>
+
+                        </form>
+                    {% endif %}
+                {% endblock %}
+                {% endembed %}
+            </div>
+        </div>
+    </section>
+
+{% endblock %}

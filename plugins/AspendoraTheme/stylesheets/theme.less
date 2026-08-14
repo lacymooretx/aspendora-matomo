@@ -1,0 +1,29 @@
+// Aspendora brand theme.
+//
+// Everything colour-related lives in AspendoraTheme::configureThemeVariables() so it resolves
+// per light/dark mode. This file only carries what CSS has to own: the self-hosted brand
+// typeface and the few chrome details the theme variables can't express.
+
+// Plus Jakarta Sans — the aspendora.com typeface, self-hosted (no external font CDN; the
+// tracker is cookieless and first-party and the admin UI should be too). Variable weight
+// axis, latin subset only, ~27KB. SIL OFL 1.1 — see ../fonts/LICENSE-PlusJakartaSans.txt.
+@font-face {
+    font-family: 'Plus Jakarta Sans';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 200 800;
+    src: url('../fonts/plus-jakarta-sans-latin-wght-normal.woff2') format('woff2-variations');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+        U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+        U+FEFF, U+FFFD;
+}
+
+// images/logo-header.png is the wordmark knocked out to near-white, because every surface it
+// appears on — the top bar, the login page nav, the report email header — is painted with
+// @theme-color-header-background, i.e. brand navy. It ships at 100px tall (Matomo's small-logo
+// height) so it stays crisp on retina. The full-colour images/logo.png is the large logo, used
+// on light backgrounds only (PDF reports).
+#logo.brand-logo img {
+    max-height: 28px;
+    width: auto;
+}

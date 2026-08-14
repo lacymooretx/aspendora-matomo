@@ -1,0 +1,64 @@
+{# Aspendora white-label: core's login layout extends '@Morpheus/layout.twig' by name, which
+   walks straight past this theme's layout override, so the sign-in page kept the Matomo title.
+   Identical to core except:
+     - extends the unqualified 'layout.twig', so it picks up the branded <title>
+     - the logo links to this instance rather than matomo.org
+
+   useLargeLogo stays false on purpose: #loginPage nav is painted with
+   @theme-color-header-background (brand navy), so this needs the knocked-out header logo, not
+   the dark wordmark. #}
+{% extends 'layout.twig' %}
+
+{% block meta %}
+    <meta name="robots" content="noindex,nofollow">
+{% endblock %}
+
+{% block head %}
+    {% set deferjs = true %}
+    {{ parent() }}
+{% endblock %}
+
+{% set title %}{{ pageTitle|default('Login_LogIn'|translate) }}{% endset %}
+
+{% block pageDescription %}{{ 'General_OpenSourceWebAnalytics'|translate }}{% endblock %}
+
+{% set bodyId = 'loginPage' %}
+
+{% set colClass %}{{ colClassOverride|default('col s12 m6 l4') }}{% endset %}
+
+{% block body %}
+
+    {{ postEvent("Template.beforeTopBar", "login") }}
+    {{ postEvent("Template.beforeContent", "login") }}
+
+    {% include "_iframeBuster.twig" %}
+
+    <div id="notificationContainer">
+    </div>
+    <nav>
+        <div class="nav-wrapper">
+            {% include "@CoreHome/_logo.twig" with { 'logoLink': 'index.php', 'centeredLogo': (isCenteredLogo ?? true), 'useLargeLogo': false } %}
+        </div>
+    </nav>
+
+    <section class="loginSection row">
+        <div class="{{ colClass }}">
+
+        {# untrusted host warning #}
+        {% if (isValidHost is defined and invalidHostMessage is defined and isValidHost == false) %}
+            {% include '@CoreHome/_warningInvalidHost.twig' %}
+        {% else %}
+            {% block loginContent %}
+            {% endblock %}
+        {% endif %}
+
+        </div>
+
+        {% if showImageDiv is defined and imageToShow is defined %}
+        <div class="col l4 hide-on-med-and-down onboardingImage">
+            <img class="responsive-img" src="{{ imageToShow }}">
+        </div>
+        {% endif %}
+    </section>
+
+{% endblock %}
