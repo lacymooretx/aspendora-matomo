@@ -264,3 +264,54 @@ AspendoraTheme` → `plugin:deactivate Tour ProfessionalServices Marketplace Fee
 
 **Next:** phase gate — awaiting approval. Open items: PDF report interiors still use Matomo's
 `ReportRenderer` colour constants; Tag Manager left off.
+
+## 2026-08-14 — Wave 9b: correct the logo, adopt the brand repo, brand the PDF
+
+**Trigger:** user flagged the logo as wrong and pointed at
+`~/code/aspendora-branding/assets/logo/letterhead-logo-full-reverse-sourcefw_.png`, then asked
+for the PDF to be branded and set to US Letter.
+
+- [x] **The logo was wrong, and the way it was wrong mattered.** Wave 9 derived a header logo
+  with ImageMagick (`-fuzz 20% -fill "#F8FAFC" -opaque black`), producing a white wordmark with
+  the crimson arc still in place. `~/code/aspendora-branding/docs/logo-usage.md` forbids exactly
+  that: *"Recolor the mark. The gradient is fixed"*, and there is already a proper **all-white
+  reverse** lockup at 1800×894. Replaced with straight copies of the real files — no derivation:
+  - `images/logo.png` ← `assets/logo/logo.webp` (447×180 full colour, native size, no upscale)
+  - `images/logo-header.png` ← the reverse lockup, resized to 120px tall
+  - `images/favicon.png` / `favicon-256.png` ← `assets/favicon/mark-icon-{32,512}-navy.png`
+    (byte-identical for the 32px). My hand-made "A + arc" favicon also broke the lockup in a way
+    the brand doesn't sanction — only *the peak* may stand alone, and only in square icon slots.
+- [x] **Assimilated the brand repo** into `docs/branding.md` per the repo standard (source note +
+  only what this fork depends on). Repointed the theme's palette at the canonical tokens: dark
+  mode now uses the real navy family (`navy #0c1a36` page / `navy-deep #142850` card /
+  `navy-hero #0f172a` borders) instead of the three values I had invented.
+- [x] **Documented deviation:** brand minimum on-screen width for the full lockup is 120px;
+  Matomo's top bar can't give it that much height with clear space, so it renders smaller
+  (34px tall). Written down in `docs/branding.md` rather than left as a silent compromise.
+- [x] **PDF reports — US Letter.** First attempt edited `PDF_PAGE_FORMAT` in
+  `plugins/ScheduledReports/config/tcpdf_config.php` and had **no effect**: the bundled TCPDF
+  declares `__construct($orientation='P', $unit='mm', $format='A4', …)` with *hardcoded*
+  defaults and never reads that constant. Reverted that edit (left a note in place so nobody
+  repeats it) and passed the format at construction in `core/ReportRenderer/Pdf.php` instead.
+  Verified by reading `/MediaBox` out of the generated PDF: was `595.276 x 841.89` (A4), now
+  `612 x 792` (US Letter). `MAX_ROW_COUNT` 28 → 26 for the 17.6mm shorter page.
+- [x] **PDF/report palette** — `core/ReportRenderer.php` constants set to the brand's *document*
+  spec (`~/code/aspendora-branding/templates/document.css`): burgundy `#660000` titles, ink body,
+  ink table header with white bold uppercase text, slate-200 borders, slate-50 zebra. Core edit
+  because Pdf.php reads the constants directly in its constructor — no event, no DI seam.
+  Upstream values recorded in the comment for future merge conflicts. Also added
+  `GRAPH_SERIES_COLORS` and passed it into `getStaticGraph`, since ImageGraph carries its own
+  palette and never consults the UI theme.
+- [x] **Print vs web split honoured:** `EmailStyles` seeds from those same constants, so the HTML
+  email report inherits the table styling (deliberate), but
+  `AspendoraTheme::configureEmailStyle` puts the title colour back to web ink — burgundy is a
+  print-only convention per the brand's color doc.
+- [x] **Verified** by generating a real report: created a temporary scheduled report
+  (`period=never`, `emailMe=0` — no mail sent), rendered before/after PDFs to PNG and compared,
+  then deleted the report (`ScheduledReports.getReports` → `[]`). Cover page carries the
+  full-colour lockup; Country table (22 rows) fits Letter with no overflow; chart line is brand
+  blue.
+
+**Still open:** PDF body font is DejaVu Sans. TCPDF needs a converted TTF and the brand folder
+ships woff2 only — fixing it means adding a Plus Jakarta Sans TTF to the repo and running
+`TCPDF_FONTS::addTTFfont`. Noted in `docs/branding.md`.

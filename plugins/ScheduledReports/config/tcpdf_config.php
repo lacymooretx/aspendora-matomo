@@ -105,6 +105,11 @@ if (!defined('K_TCPDF_EXTERNAL_CONFIG')) {
 
     /**
      * page format
+     *
+     * NOTE (Aspendora): changing this does nothing for report PDFs. This bundled TCPDF's
+     * constructor signature is `__construct($orientation='P', $unit='mm', $format='A4', ...)`
+     * — hardcoded defaults, it never reads PDF_PAGE_FORMAT. Report page size is set explicitly
+     * in core/ReportRenderer/Pdf.php instead.
      */
     define('PDF_PAGE_FORMAT', 'A4');
 

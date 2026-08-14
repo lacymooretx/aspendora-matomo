@@ -18,12 +18,18 @@
         U+FEFF, U+FFFD;
 }
 
-// images/logo-header.png is the wordmark knocked out to near-white, because every surface it
-// appears on — the top bar, the login page nav, the report email header — is painted with
-// @theme-color-header-background, i.e. brand navy. It ships at 100px tall (Matomo's small-logo
-// height) so it stays crisp on retina. The full-colour images/logo.png is the large logo, used
-// on light backgrounds only (PDF reports).
+// images/logo-header.png is the brand's all-white reverse lockup
+// (assets/logo/letterhead-logo-full-reverse-sourcefw_.png), because every surface it appears on
+// — the top bar, the login page nav, the report email header — is painted with
+// @theme-color-header-background, i.e. brand navy. Do NOT substitute a CSS filter or a recoloured
+// derivative: the mark's gradient is fixed and recolouring it is explicitly off-limits.
+// The full-colour images/logo.png is the large logo, for light backgrounds only (PDF cover page).
+//
+// Known deviation: the brand minimum on-screen width for the full lockup is 120px, at which
+// "technologies" stops resolving. Matomo's top bar can't give the lockup that much height and
+// still keep its clear space, so it runs smaller here than the brand standard. Internal app
+// chrome, not customer-facing material — but it is a deviation, not an oversight.
 #logo.brand-logo img {
-    max-height: 28px;
+    max-height: 34px;
     width: auto;
 }

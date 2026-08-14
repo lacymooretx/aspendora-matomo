@@ -23,14 +23,31 @@ use Piwik\Plugins\ImageGraph\API;
 abstract class ReportRenderer extends BaseFactory
 {
     public const DEFAULT_REPORT_FONT_FAMILY = 'dejavusans';
-    public const REPORT_TEXT_COLOR = "13,13,13";
-    public const REPORT_TITLE_TEXT_COLOR = "13,13,13";
-    public const TABLE_HEADER_BG_COLOR = "255,255,255";
-    public const TABLE_HEADER_TEXT_COLOR = "13,13,13";
+
+    /**
+     * ASPENDORA: report palette, from the brand's document/PDF spec
+     * (~/code/aspendora-branding/templates/document.css, mirrored in docs/branding.md).
+     *
+     * These constants are the only way to colour a rendered report — Pdf.php reads them
+     * directly in its constructor and there is no event or DI seam — hence a core edit.
+     * They also seed Piwik\Mail\EmailStyles, so the HTML email report picks up the same table
+     * styling; AspendoraTheme::configureEmailStyle puts the *title* colour back to web ink for
+     * email, because burgundy headings are deliberately the print/document look only.
+     *
+     * Upstream values, for merge conflicts: 13,13,13 / 13,13,13 / 255,255,255 / 13,13,13 /
+     * uppercase / normal / 217,217,217 / 242,242,242.
+     */
+    public const REPORT_TEXT_COLOR = "15,23,41";        // ink #0f1729
+    public const REPORT_TITLE_TEXT_COLOR = "102,0,0";   // document burgundy #660000
+    public const TABLE_HEADER_BG_COLOR = "15,23,41";    // ink #0f1729
+    public const TABLE_HEADER_TEXT_COLOR = "255,255,255";
     public const TABLE_HEADER_TEXT_TRANSFORM = "uppercase";
-    public const TABLE_HEADER_TEXT_WEIGHT = "normal";
-    public const TABLE_CELL_BORDER_COLOR = "217,217,217";
-    public const TABLE_BG_COLOR = "242,242,242";
+    public const TABLE_HEADER_TEXT_WEIGHT = "bold";
+    public const TABLE_CELL_BORDER_COLOR = "226,232,240"; // slate-200 #e2e8f0
+    public const TABLE_BG_COLOR = "248,250,252";          // slate-50 #f8fafc
+
+    /** ASPENDORA: brand blue #2563eb, then the supporting blues, for report graph series. */
+    public const GRAPH_SERIES_COLORS = '2563EB,1D4ED8,60A5FA,93C5FD,0F1729,64748B';
 
     public const HTML_FORMAT = 'html';
     public const PDF_FORMAT = 'pdf';
@@ -276,6 +293,9 @@ abstract class ReportRenderer extends BaseFactory
         $requestGraph['filter_truncate'] = '';
         $requestGraph['width'] = $width;
         $requestGraph['height'] = $height;
+        // ASPENDORA: brand the series in emailed/PDF graphs. ImageGraph carries its own palette
+        // and never consults the UI theme, so it has to be passed in here.
+        $requestGraph['colors'] = self::GRAPH_SERIES_COLORS;
 
         if ($segment != null) {
             $requestGraph['segment'] = urlencode($segment['definition']);

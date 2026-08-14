@@ -31,7 +31,10 @@ class Pdf extends ReportRenderer
     public const IMAGE_GRAPH_WIDTH_PORTRAIT = 760;
     public const IMAGE_GRAPH_HEIGHT = 220;
 
-    public const MAX_ROW_COUNT = 28;
+    // ASPENDORA: 26, not upstream's 28. This is "how many rows fit on a page before we start a
+    // new one", and the page is US Letter here (see PAGE_FORMAT below) — 17.6mm shorter than the
+    // A4 the 28 was tuned for, which is almost exactly two rows.
+    public const MAX_ROW_COUNT = 26;
     public const TABLE_HEADER_ROW_COUNT = 6;
     public const NO_DATA_ROW_COUNT = 6;
     public const MAX_GRAPH_REPORTS = 3;
@@ -40,6 +43,16 @@ class Pdf extends ReportRenderer
     public const IMPORT_FONT_PATH = 'plugins/ImageGraph/fonts/unifont.ttf';
     public const PDF_CONTENT_TYPE = 'pdf';
     public const PORTRAIT = 'P';
+
+    /**
+     * ASPENDORA: US Letter, not upstream's A4 — every recipient of these reports is in the US
+     * and the brand's document spec is `@page { size: letter }`.
+     *
+     * It has to be passed to the constructor: the bundled TCPDF declares
+     * `__construct($orientation='P', $unit='mm', $format='A4', ...)` with hardcoded defaults
+     * and never reads the PDF_PAGE_FORMAT constant, so editing tcpdf_config.php has no effect.
+     */
+    public const PAGE_FORMAT = 'LETTER';
 
     private $reportFontStyle = '';
     private $reportSimpleFontSize = 8.5;
@@ -90,7 +103,7 @@ class Pdf extends ReportRenderer
 
     public function __construct()
     {
-        $this->TCPDF = new TCPDF();
+        $this->TCPDF = new TCPDF(self::PORTRAIT, PDF_UNIT, self::PAGE_FORMAT);
         $this->headerTextColor = preg_split("/,/", ReportRenderer::REPORT_TITLE_TEXT_COLOR);
         $this->reportTextColor = preg_split("/,/", ReportRenderer::REPORT_TEXT_COLOR);
         $this->tableHeaderBackgroundColor = preg_split("/,/", ReportRenderer::TABLE_HEADER_BG_COLOR);

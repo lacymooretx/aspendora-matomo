@@ -191,3 +191,29 @@ brand blue `#2563eb` / hover `#1d4ed8` on a slate scale, navy `#0f172a` chrome, 
 Deliberately left for a follow-up decision: PDF/scheduled-report body styling still uses
 Matomo's `ReportRenderer` colour constants (the email header/footer are branded, the PDF
 interior is not), and Tag Manager remains deactivated — see the runlog.
+
+### Wave 9b — logo correction + branded PDF (2026-08-14)
+
+Follow-up within the same phase, after the user identified `~/code/aspendora-branding` as the
+brand source of truth and asked for the PDF.
+
+- [x] **Logo corrected.** Wave 9's header logo was an ImageMagick derivation (white wordmark,
+  crimson arc retained) — the brand explicitly forbids recolouring the mark, and a proper
+  all-white reverse lockup already existed. All four image assets are now straight copies of
+  brand files, not derivations. Favicon is the sanctioned peak-only square mark.
+- [x] **`docs/branding.md`** added: the brand repo assimilated per the repo standard, covering
+  the tokens, logo files, PDF/document spec and the deviations this fork knowingly takes.
+  Theme palette repointed at canonical tokens (dark mode now uses the real navy family).
+- [x] **PDF reports are US Letter** — set at TCPDF construction in `core/ReportRenderer/Pdf.php`,
+  *not* via `PDF_PAGE_FORMAT` (the bundled TCPDF hardcodes `$format='A4'` in its constructor
+  signature and never reads the constant). Verified via `/MediaBox`: `612 x 792`.
+  `MAX_ROW_COUNT` 28 → 26 for the shorter page.
+- [x] **PDF/report palette branded** to the document spec — burgundy titles, ink table header
+  with white bold uppercase text, slate borders and zebra, brand-blue graph series. HTML email
+  shares the table styling; its title colour is put back to web ink, since burgundy is
+  print-only.
+- [x] **Verified on a real generated report** (temporary `period=never` report, no mail sent,
+  deleted afterwards): before/after PDFs rendered and compared page by page.
+
+**PHASE COMPLETE — awaiting approval to proceed.** Remaining known gap: PDF body font is still
+DejaVu Sans; embedding Plus Jakarta Sans needs a TTF added to the repo.
