@@ -217,3 +217,22 @@ brand source of truth and asked for the PDF.
 
 **PHASE COMPLETE — awaiting approval to proceed.** Remaining known gap: PDF body font is still
 DejaVu Sans; embedding Plus Jakarta Sans needs a TTF added to the repo.
+
+### Wave 9c/9d — vector logo + PDF typeface (2026-08-14, approved to proceed)
+
+- [x] **Vector logo master adopted.** The brand repo gained a full SVG set mid-phase, closing the
+  "no vector master" gap. `images/logo.svg` = `aspendora-logo-dark.svg`; SVG-first branch restored
+  in `_logo.twig`; email raster regenerated from the same SVG with the brand's `render-png.py`.
+- [x] **Logo at the brand header standard** — 48px tall / 119px wide, which is simultaneously the
+  48px header standard and the 120px minimum width. The deviation recorded in Wave 9b is gone.
+  Needed two-ID selectors to beat core's `#root #logo img { max-height: 32px }`, which loses
+  silently. Raising the top bar to 72px was tried and backed out (Morpheus's `.nav-wrapper`
+  isn't flex).
+- [x] **PDF reports in Plus Jakarta Sans** — TTFs committed, converted for TCPDF at image build
+  time, `DEFAULT_REPORT_FONT_FAMILY` repointed. Verified via `/BaseFont` in a generated report.
+
+**All Wave 9 open items are closed.** Verified end state: US Letter PDFs in the brand typeface
+with burgundy headings, ink table headers and brand-blue charts; vector logo at brand size in the
+UI, on the login page and in report emails; no "Matomo" in any client-facing surface.
+
+**PHASE COMPLETE — awaiting approval to proceed.**
