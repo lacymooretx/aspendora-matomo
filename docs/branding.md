@@ -33,9 +33,20 @@ sans-serif`. Self-hosted in `plugins/AspendoraTheme/fonts/` (latin subset, varia
 200–800, ~27KB, SIL OFL 1.1) — no external font CDN, matching the first-party/cookieless posture
 of the tracker itself.
 
-**Gap:** PDF reports still render in DejaVu Sans. TCPDF needs a converted TTF, and the brand
-folder ships woff2 only. Fixing this means adding a Plus Jakarta Sans TTF to the repo and running
-it through `TCPDF_FONTS::addTTFfont`.
+**PDF reports** use the same typeface. TCPDF can't read woff2 (or a TTF directly — it needs a
+converted `.php`/`.z`/`.ctg.z` trio in its own fonts dir), so
+`plugins/AspendoraTheme/fonts/PlusJakartaSans-{Regular,Bold}.ttf` are committed alongside the
+webfont and converted at **image build time** by a step in `deploy/Dockerfile`. That produces the
+font keys `plusjakartasans` / `plusjakartasansb`, which is what
+`ReportRenderer::DEFAULT_REPORT_FONT_FAMILY` points at; `Pdf.php` asks for style `B` on table
+headers, which is why both weights are needed.
+
+Two things to know if you touch that build step: the out path **must** end in a slash (TCPDF
+concatenates it straight onto the font name, so without it the files land next to the directory),
+and `Pdf::setLocale()` only falls back to this font for latin locales — CJK, Arabic and Indic
+reports keep their own bundled fonts, which is correct.
+
+Fonts are SIL OFL 1.1 — `fonts/LICENSE-PlusJakartaSans.txt`.
 
 ## Logo files
 
@@ -71,6 +82,7 @@ edit; there is no event or DI seam on those constants):
 - **Table header** filled ink `#0f1729` with white uppercase bold text; **cell borders**
   slate-200; **zebra rows** slate-50.
 - **Graph series** in brand blue and its supporting blues.
+- **Plus Jakarta Sans** throughout, converted for TCPDF at build time (see Type above).
 
 Because `EmailStyles` seeds itself from those same constants, the HTML email report inherits the
 table styling — deliberate, it should be the same report either way. The *title* colour is put

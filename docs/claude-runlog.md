@@ -351,3 +351,29 @@ step, closing the "no vector master" gap that `docs/branding.md` had recorded as
 **Still open:** PDF body font is DejaVu Sans. Needs a Plus Jakarta Sans **TTF** committed to the
 repo and run through `TCPDF_FONTS::addTTFfont` — the brand folder ships no TTF/OTF and the
 webfont this theme uses is woff2, which TCPDF can't read.
+
+## 2026-08-14 — Wave 9d: Plus Jakarta Sans in PDF reports
+
+Last open item from the phase gate. User approved fetching the TTF from Google Fonts.
+
+- [x] **Fonts committed**: `PlusJakartaSans-{Regular,Bold}.ttf` (SIL OFL 1.1, ~129KB each) into
+  `plugins/AspendoraTheme/fonts/` next to the existing woff2. Both weights are needed —
+  `Pdf.php` calls `SetFont($this->reportFont, 'B')` for table headers.
+- [x] **Converted at image build time**, not on first render: a `php -r` step in
+  `deploy/Dockerfile` runs `TCPDF_FONTS::addTTFfont(..., "TrueTypeUnicode", "", 32, $out)` into
+  `vendor/tecnickcom/tcpdf/fonts/`, and fails the build if the expected `.php` doesn't appear.
+  Produces keys `plusjakartasans` / `plusjakartasansb`;
+  `ReportRenderer::DEFAULT_REPORT_FONT_FAMILY` set to the former (was `dejavusans`).
+- [x] **Gotcha:** the out path must end in `/`. TCPDF concatenates it straight onto the font
+  name, so `/tmp/aspfonts` (no slash) wrote `/tmp/aspfontsplusjakartasans.php` — the call still
+  returns the key, so it looks like it worked. Cost a round of head-scratching; noted in the
+  Dockerfile and `docs/branding.md`.
+- [x] **Verified on a generated report** (temporary `period=never` report, no mail, deleted
+  after): `/BaseFont` entries are `PlusJakartaSans-Regular` and `AAAAAD+PlusJakartaSans-Bold`,
+  MediaBox `612 x 792`. Rendered at 300dpi to confirm word spacing is correct — at 90dpi the
+  spaces *look* collapsed, which is a rasteriser artifact, not the font.
+- [x] `Pdf::setLocale()` only falls back to this font for latin locales; CJK/Arabic/Indic reports
+  keep their bundled fonts. Left alone deliberately.
+
+**Wave 9 open items are now closed.** Tag Manager remains deactivated by choice (one command to
+enable, see the Wave 9 entry).

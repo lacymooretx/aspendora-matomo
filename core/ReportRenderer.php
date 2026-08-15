@@ -22,7 +22,13 @@ use Piwik\Plugins\ImageGraph\API;
  */
 abstract class ReportRenderer extends BaseFactory
 {
-    public const DEFAULT_REPORT_FONT_FAMILY = 'dejavusans';
+    /**
+     * ASPENDORA: the brand typeface, instead of upstream's 'dejavusans'. The TCPDF font files are
+     * generated from plugins/AspendoraTheme/fonts/PlusJakartaSans-{Regular,Bold}.ttf at image
+     * build time — see deploy/Dockerfile. Pdf::setLocale() only falls back to this for latin
+     * locales; CJK/Arabic/Indic reports keep their own bundled fonts, which is correct.
+     */
+    public const DEFAULT_REPORT_FONT_FAMILY = 'plusjakartasans';
 
     /**
      * ASPENDORA: report palette, from the brand's document/PDF spec

@@ -35,6 +35,25 @@ RUN set -eux; \
 # bland first-party hub domains; "rrweb" in a URL would trip content-blocker filename rules)
 RUN cp /usr/src/matomo/plugins/AspendoraSessionRecording/assets/rrweb.min.js /usr/src/matomo/vendor.js
 
+# Brand typeface for PDF reports. TCPDF can't read a TTF directly — it needs a converted
+# .php/.z/.ctg.z trio in its own fonts dir — so the conversion is done here, at build time,
+# rather than on first render. Produces the font keys `plusjakartasans` and `plusjakartasansb`
+# (Pdf.php asks for style 'B' on table headers), which is what
+# ReportRenderer::DEFAULT_REPORT_FONT_FAMILY points at.
+# NOTE the trailing slash on the out path: TCPDF concatenates it straight onto the font name,
+# so without it the files land next to the directory instead of inside it.
+RUN php -r '\
+    require "/usr/src/matomo/vendor/autoload.php"; \
+    $out = "/usr/src/matomo/vendor/tecnickcom/tcpdf/fonts/"; \
+    foreach (["Regular", "Bold"] as $weight) { \
+        $ttf = "/usr/src/matomo/plugins/AspendoraTheme/fonts/PlusJakartaSans-$weight.ttf"; \
+        $key = TCPDF_FONTS::addTTFfont($ttf, "TrueTypeUnicode", "", 32, $out); \
+        if (!$key || !file_exists($out . $key . ".php")) { \
+            fwrite(STDERR, "font conversion failed for $ttf\n"); exit(1); \
+        } \
+        echo "converted $weight -> $key\n"; \
+    }'
+
 # Pristine config (no config.ini.php in git source) for the startup re-sync
 RUN cp -a /usr/src/matomo/config /usr/src/matomo-config
 COPY deploy/docker-entrypoint-aspendora.sh /docker-entrypoint-aspendora.sh
