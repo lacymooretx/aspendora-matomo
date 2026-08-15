@@ -5,10 +5,10 @@
  * here is chrome that core injects regardless of those plugins, plus belt-and-braces selectors
  * in case one of them is ever switched back on. */
 
-/* CorePluginsAdmin adds a permanent "Tag Manager" item to the top menu that links to
- * action=tagManagerTeaser — an ad for a plugin that isn't enabled here, not the feature. */
-#topmenu-corepluginsadmin,
-li:has(> #topmenu-corepluginsadmin) { display: none !important; }
+/* Note: the rule that used to hide #topmenu-corepluginsadmin is gone. It existed because
+ * CorePluginsAdmin adds a permanent "Tag Manager" top-menu item pointing at
+ * action=tagManagerTeaser — an ad — whenever TagManager is on disk but not activated.
+ * TagManager is now activated, so that item is the real feature and must stay visible. */
 
 .marketplace-max-sites-reached,
 .pluginsSummary .promo,

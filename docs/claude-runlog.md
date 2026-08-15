@@ -377,3 +377,45 @@ Last open item from the phase gate. User approved fetching the TTF from Google F
 
 **Wave 9 open items are now closed.** Tag Manager remains deactivated by choice (one command to
 enable, see the Wave 9 entry).
+
+## 2026-08-14 — Tag Manager enabled and implemented (user: "turn it on and implement it")
+
+Full write-up: `docs/tag-manager.md`. Execution notes:
+
+- [x] **Recon first, and it changed the design.** The live site already runs an inline Matomo
+  `_paq` snippet (via `wp-content/mu-plugins/aspendora-matomo-tracking.php`), `bundle.js`, the
+  Meta Pixel and a Google tag. The mu-plugin header states the constraint that shaped everything
+  else: content blockers block the `analytics.*` subdomain and `matomo.js`/`matomo.php` filenames,
+  so tracking is served from `hub.aspendora.com` + `/js/`. Verified `hub.aspendora.com` serves the
+  same Matomo webroot, so container files are first-party there too.
+- [x] **Activated** TagManager; `core:update` reported nothing pending but the 6
+  `matomo_tagmanager_*` tables were created by the plugin's own install.
+- [x] **Caught before it shipped:** Matomo auto-generated a container for site 1 containing a
+  **Matomo Analytics pageview tag**, and had already released it. Installing that as-is would have
+  double-counted every visit against the inline snippet. Deleted the tag from the draft, then
+  published. Verified the served container has `"tags":[]` and the live page has exactly one
+  `trackPageView`.
+- [x] **Containers:** site 1 `BHo9F6Wm` (renamed "aspendora.com — Web"), site 2 `BnFlas5j`
+  (created; published; **snippet not installed on that site yet**). Both valid JS via
+  `node --check`, both carry a Pageview trigger and a MatomoConfiguration variable ready for use.
+- [x] **Site install:** mu-plugin bumped 1.2 → 1.3, container snippet added inside the existing
+  `wp_head` hook so it inherits the same "don't track editors/previews" gate. Backed up the live
+  file first (`.bak-20260814221341`), `php -l` clean locally and on the server, verified the
+  rendered snippet and that `trackPageView` still appears exactly once.
+- [x] **Design decision — the pageview stays inline, deliberately.** Not laziness: putting the
+  core pageview behind the container would make primary analytics depend on one more blockable
+  request, on a site specifically engineered to dodge blockers. The container owns marketing tags;
+  the tracker owns analytics. Reasoning recorded in `docs/tag-manager.md` and in the mu-plugin.
+- [x] **Trap found the hard way:** published container files are written to the **webroot**, which
+  is an anonymous volume — the first redeploy after publishing 404'd both containers, silently
+  (the page still renders). Fixed in `deploy/docker-entrypoint-aspendora.sh`: a backgrounded,
+  best-effort `tagmanager:regenerate-released-containers` once the webroot is repopulated.
+  Verified end-to-end — after a fresh `--renew-anon-volumes` redeploy the files reappeared 5s
+  after container start with no manual step.
+- [x] Removed the white-label CSS rule that hid `#topmenu-corepluginsadmin`. That rule existed to
+  hide the *teaser* shown when TagManager is on disk but inactive; now activated, the same menu
+  item is the real feature.
+
+**Left alone deliberately:** Meta Pixel (`official-facebook-pixel`) and the Google tag
+(Site Kit) still load from their WordPress plugins. Both do more than inject a snippet, so each
+migration is its own verified change — see `docs/tag-manager.md`.
