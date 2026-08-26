@@ -5,6 +5,14 @@
  * Page must set: window.__asp = { site:'1', hub:'https://hub.example.com/', key:'...',
  *                                 rec:1, sample:100 }
  * Served from the first-party hub domain; endpoint + filenames deliberately bland.
+ *
+ * CONSENT (2026-08-26): identity capture and session recording are FAIL-CLOSED. They
+ * require window.aspConsent.granted('analytics') — a page with no consent manager gets
+ * neither. Heatmap, media, error and click-id tracking stay on: first-party, cookieless,
+ * no personal identifiers. Identities are stored as a SHA-256 hash, never a readable
+ * email; a page served over plain HTTP has no crypto.subtle and so captures no identity
+ * at all. Do not "temporarily" relax either of these — that is the exact combination
+ * (readable email as analytics key + 100% session replay) that draws demand letters.
  */
 (function () {
     var cfg = window.__asp || {};
@@ -20,6 +28,48 @@
             fetch(cfg.hub + 'hub.php', { method: 'POST', body: body, keepalive: true }).catch(function () {});
         }
     }
+    // ---- Consent (fail closed). No manager on the page => no identity, no recording.
+    function consentOk() {
+        try {
+            // 1. Our own consent manager (aspendoracompliance.com).
+            var c = window.aspConsent;
+            if (c && typeof c.granted === 'function') { return !!c.granted('analytics'); }
+            // 2. WordPress "GDPR Cookie Consent" / CookieYes (aspendora.com). It blocks
+            //    third-party tags by rewriting them to text/plain, but it cannot block a
+            //    first-party script like this one — so read its decision ourselves rather
+            //    than sail past a banner the visitor already answered.
+            var m = document.cookie.match(/(?:^|;\s*)cookielawinfo-checkbox-non-necessary=([^;]*)/);
+            if (m) { return m[1] === 'yes'; }
+        } catch (e) {}
+        return false; // no recognised consent manager => capture nothing
+    }
+    function whenConsented(fn) {
+        if (consentOk()) { fn(); return; }
+        var c = window.aspConsent;
+        if (!c || typeof c.onChange !== 'function') { return; }
+        var done = false;
+        c.onChange(function (state) {
+            if (done || !state || !state.analytics) { return; }
+            done = true;
+            fn();
+        });
+    }
+
+    // SHA-256 → hex. Resolves null where WebCrypto is unavailable (plain HTTP, ancient
+    // browsers), and callers must treat null as "capture nothing" rather than falling
+    // back to the readable value.
+    function sha256Hex(input) {
+        try {
+            var c = window.crypto || window.msCrypto;
+            if (!c || !c.subtle || !window.TextEncoder) { return Promise.resolve(null); }
+            return c.subtle.digest('SHA-256', new TextEncoder().encode(input)).then(function (buf) {
+                var b = new Uint8Array(buf), out = '';
+                for (var i = 0; i < b.length; i++) { out += b[i].toString(16).padStart(2, '0'); }
+                return out;
+            }).catch(function () { return null; });
+        } catch (e) { return Promise.resolve(null); }
+    }
+
     function ev(cat, action, name, value) {
         if (!window._paq) { return; }
         var args = ['trackEvent', cat, action, name];
@@ -51,18 +101,40 @@
         // newly learned identity: send one ping so this visit carries the user id
         if (uid !== prev && window._paq) { _paq.push(['ping']); }
     }
+    var EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
+    // Devices that visited before the hashing change still hold a readable email in
+    // localStorage. Rewrite it in place and never send it; nothing else clears it.
+    function migrateLegacyId(saved) {
+        if (!EMAIL_RE.test(saved)) { return Promise.resolve(saved); }
+        return sha256Hex(saved).then(function (h) {
+            if (!h) {
+                try { localStorage.removeItem('asp_uid'); } catch (e) {}
+                return null;
+            }
+            var hashed = 'sha256:' + h;
+            try { localStorage.setItem('asp_uid', hashed); } catch (e) {}
+            return hashed;
+        });
+    }
+
     function initIdentity() {
         try {
             var c = new URLSearchParams(location.search).get('asp_c');
             if (c && /^[A-Za-z0-9]{8,40}$/.test(c)) {
+                // Opaque CRM contact id from a decorated campaign link — not personal data
+                // on its own, so it needs no hashing.
                 storeId('ghl:' + c);
             } else {
                 var saved = localStorage.getItem('asp_uid');
                 if (saved) {
-                    applyId(saved);
-                    // the pageview fired before this async bundle ran — one ping
-                    // attaches the user id to the current visit
-                    if (window._paq) { _paq.push(['ping']); }
+                    migrateLegacyId(saved).then(function (uid) {
+                        if (!uid) { return; }
+                        applyId(uid);
+                        // the pageview fired before this async bundle ran — one ping
+                        // attaches the user id to the current visit
+                        if (window._paq) { _paq.push(['ping']); }
+                    });
                 }
             }
         } catch (e) {}
@@ -72,7 +144,14 @@
             var inputs = f.querySelectorAll('input[type=email], input[name*=email i]');
             for (var i = 0; i < inputs.length; i++) {
                 var v = (inputs[i].value || '').trim().toLowerCase();
-                if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) { storeId(v); break; }
+                if (EMAIL_RE.test(v)) {
+                    // Hash before anything is stored or transmitted. The readable address
+                    // never leaves this closure.
+                    sha256Hex(v).then(function (h) {
+                        if (h) { storeId('sha256:' + h); }
+                    });
+                    break;
+                }
             }
         }, { capture: true, passive: true });
     }
@@ -219,6 +298,11 @@
         document.head.appendChild(s);
     }
 
-    function init() { initErrors(); initExperiments(); initIdentity(); initMedia(); initHeat(); initRec(); }
+    function init() {
+        // Always on: first-party, cookieless, no personal identifiers.
+        initErrors(); initExperiments(); initMedia(); initHeat();
+        // Consent-bound: personal identity and screen content.
+        whenConsented(function () { initIdentity(); initRec(); });
+    }
     if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
 })();
