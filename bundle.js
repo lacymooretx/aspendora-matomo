@@ -31,6 +31,13 @@
     // ---- Consent (fail closed). No manager on the page => no identity, no recording.
     function consentOk() {
         try {
+            // 0. Global Privacy Control. A browser sending GPC is making a legally
+            //    recognised opt-out request under several US state privacy laws
+            //    (Texas TDPSA among them), so it outranks every other signal here —
+            //    including an accept click, which GPC users have not meaningfully given.
+            //    aspendoracompliance.com honours GPC in its own consent manager; this
+            //    covers the properties that have no manager of their own.
+            if (navigator.globalPrivacyControl === true) { return false; }
             // 1. Our own consent manager (aspendoracompliance.com).
             var c = window.aspConsent;
             if (c && typeof c.granted === 'function') { return !!c.granted('analytics'); }
@@ -38,8 +45,19 @@
             //    third-party tags by rewriting them to text/plain, but it cannot block a
             //    first-party script like this one — so read its decision ourselves rather
             //    than sail past a banner the visitor already answered.
+            //
+            //    BOTH cookies are required, and the order matters. The plugin writes
+            //    `cookielawinfo-checkbox-<category>` on the FIRST page load to seed each
+            //    category's default state — it is present and reads 'yes' while the banner
+            //    is still sitting there unanswered. It records a category default, not a
+            //    decision. `viewed_cookie_policy=yes` is the only cookie that means the
+            //    visitor actually chose. Testing the category flag alone reads an untouched
+            //    banner as consent, which is precisely the hole this gate exists to close.
+            //    Verified on aspendora.com 2026-08-26: clean load, banner displayed,
+            //    nothing clicked -> checkbox-non-necessary=yes, viewed_cookie_policy absent.
+            var answered = /(?:^|;\s*)viewed_cookie_policy=yes/.test(document.cookie);
             var m = document.cookie.match(/(?:^|;\s*)cookielawinfo-checkbox-non-necessary=([^;]*)/);
-            if (m) { return m[1] === 'yes'; }
+            if (m) { return answered && m[1] === 'yes'; }
         } catch (e) {}
         return false; // no recognised consent manager => capture nothing
     }
