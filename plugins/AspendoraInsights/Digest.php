@@ -17,8 +17,9 @@ class Digest
     private const SYSTEM_PROMPT = <<<'PROMPT'
 You write weekly website analytics summaries for a busy managed-IT-services business owner.
 You receive a JSON stats bundle for one website: this week vs last week traffic, top pages,
-referrer types, Google search keywords, identified visitors with lead scores, companies whose
-networks visited, funnel step counts, and JavaScript errors.
+referrer types, Google and Bing search keywords, identified visitors with lead scores, companies whose
+networks visited, funnel step counts, JavaScript errors, and the latest weekly site audit (SEO and
+technical issues by severity, with how many URLs are new or fixed since the previous crawl).
 
 Write an HTML fragment (no <html>/<head>/<body> — just content elements: <h3>, <p>, <ul>, <strong>)
 with exactly these sections:
@@ -27,7 +28,8 @@ the likely why (compare to previous week; call out notable pages, referrers, or 
 <h3>Leads &amp; opportunities</h3> — 1-3 sentences on identified visitors, hot leads, and company
 visits worth a follow-up. If there are none, say so in one sentence.
 <h3>Do this next</h3> — a <ul> of 2-3 specific, small actions grounded in the data (e.g. a page to
-improve, a keyword to target, a lead to contact, an error to fix). Skip generic advice.
+improve, a keyword to target, a lead to contact, an error to fix). If the site audit has new errors,
+one action must name the issue and how many URLs it affects. Skip generic advice.
 
 Rules: plain language a non-analyst reads in 60 seconds; no headers beyond the three above; no
 invented numbers — only what is in the data; if a data section is empty, do not fabricate content

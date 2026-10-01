@@ -28,6 +28,9 @@ class StatsCollector
             'companies'      => $this->rows($this->fetch('AspendoraCompanies.getCompanies', $idSite, 'range', $thisWeek, ['filter_limit' => 10]), ['label', 'nb_visits', 'nb_actions']),
             'funnels'        => $this->rows($this->fetch('AspendoraFunnels.getFunnels', $idSite, 'range', $thisWeek), ['label', 'nb_visits', 'step_rate']),
             'js_errors'      => $this->rows($this->fetch('AspendoraCrash.getJsErrors', $idSite, 'range', $thisWeek, ['filter_limit' => 5]), ['label', 'nb_occurrences']),
+            // SEO monitoring (2026-10-01): Bing keywords are weekly buckets, so take the last 14 days to catch the latest one.
+            'bing_keywords'  => $this->rows($this->fetch('AspendoraSearchKeywords.getBingKeywords', $idSite, 'range', 'last14', ['filter_limit' => 10]), ['label', 'nb_clicks', 'nb_impressions', 'avg_position']),
+            'site_audit'     => $this->rows($this->fetch('AspendoraSiteAudit.getIssueSummary', $idSite, 'day', 'today'), ['label', 'severity', 'nb_urls', 'nb_new', 'nb_fixed']),
         ];
     }
 

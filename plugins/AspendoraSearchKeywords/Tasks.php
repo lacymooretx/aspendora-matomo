@@ -12,9 +12,20 @@ class Tasks extends \Piwik\Plugin\Tasks
         $this->daily('importKeywords', null, self::LOW_PRIORITY);
     }
 
+    /** GSC then Bing. A failure in either source never stops the other. */
     public function importKeywords()
     {
-        $importer = new Importer(new GscClient(), StaticContainer::get(LoggerInterface::class));
-        $importer->importAll();
+        $logger = StaticContainer::get(LoggerInterface::class);
+        $importer = new Importer(new GscClient(), $logger, new BingClient());
+        try {
+            $importer->importAll();
+        } catch (\Throwable $e) {
+            $logger->error('AspendoraSearchKeywords: GSC import aborted: {m}', ['m' => $e->getMessage()]);
+        }
+        try {
+            $importer->importBing();
+        } catch (\Throwable $e) {
+            $logger->error('AspendoraSearchKeywords: Bing import aborted: {m}', ['m' => $e->getMessage()]);
+        }
     }
 }

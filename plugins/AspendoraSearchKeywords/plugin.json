@@ -1,11 +1,16 @@
 {
     "name": "AspendoraSearchKeywords",
-    "description": "Imports Google Search Console keyword performance (clicks, impressions, CTR, position) into Matomo reports. Original Aspendora plugin.",
-    "version": "1.0.0",
+    "description": "Imports Google Search Console and Bing Webmaster keyword performance, plus Bing crawl stats and issues, into Matomo. Original Aspendora plugin.",
+    "version": "1.1.0",
     "theme": false,
     "require": {
         "matomo": ">=5.0.0-b1,<6.0.0-b1"
     },
-    "authors": [{ "name": "Aspendora Technologies", "homepage": "https://www.aspendora.com" }],
+    "authors": [
+        {
+            "name": "Aspendora Technologies",
+            "homepage": "https://www.aspendora.com"
+        }
+    ],
     "license": "GPL v3+"
 }

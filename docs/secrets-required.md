@@ -45,9 +45,16 @@ Non-secret: `ASPENDORA_INSIGHTS_EMAIL` — digest recipient (falls back to
 |---|---|
 | `ASPENDORA_GSC_CLIENT_ID` / `ASPENDORA_GSC_CLIENT_SECRET` / `ASPENDORA_GSC_REFRESH_TOKEN` | Google Search Console OAuth (refresh-token flow) |
 | `ASPENDORA_GSC_PROPERTY_MAP` | JSON map of Matomo idSite → GSC property |
+| `ASPENDORA_BING_API_KEY` | Bing Webmaster Tools API key (v1.1.0). Account-level; same value as `BING_WEBMASTER_API_KEY` in `~/.secrets/.env` (Keeper is the source of truth). Get/rotate: bing.com/webmasters → Settings → API access. Validate: `./console aspendora-bing:import` logs `stored N rows`; a bad key logs `HTTP 400 ... NotAuthorized` |
+| `ASPENDORA_BING_SITE_MAP` | Non-secret. JSON map of Matomo idSite → verified Bing siteUrl (must match exactly, trailing slash included), e.g. `{"1":"https://www.aspendora.com/","2":"https://aspendoracompliance.com/"}` |
+| `ASPENDORA_AUDIT_SITE_MAP` | Non-secret (AspendoraSiteAudit). JSON map idSite → crawl start URL, e.g. `{"1":"https://www.aspendora.com/","2":"https://aspendoracompliance.com/"}`. Unmapped sites are not crawled |
+| `ASPENDORA_AUDIT_MAX_PAGES` | Non-secret. Crawl cap per site (default 2000) |
+| `ASPENDORA_AUDIT_ORPHAN_OK` | Non-secret. JSON map idSite → array of path regexes for pages intentionally unlinked (campaign landing pages); matching orphans are not reported |
 
 ## hub.php ingest
 
 | Variable | Purpose |
 |---|---|
 | `ASPENDORA_REC_KEY` | Shared key for session-recording/heatmap beacons (public-by-design, ships in page source; caps in hub.php bound abuse) |
+
+> **2026-09-27:** GHL decommissioned. `ASPENDORA_GHL_TOKEN` and `ASPENDORA_GHL_LOCATION_ID` were removed from the deploy `.env` and are no longer required; the GHL half of AspendoraIdentity is disabled.

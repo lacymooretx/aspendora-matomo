@@ -419,3 +419,47 @@ Full write-up: `docs/tag-manager.md`. Execution notes:
 **Left alone deliberately:** Meta Pixel (`official-facebook-pixel`) and the Google tag
 (Site Kit) still load from their WordPress plugins. Both do more than inject a snippet, so each
 migration is its own verified change — see `docs/tag-manager.md`.
+
+## 2026-09-27 ~15:20 CDT — GHL integration disabled (GHL decommissioned)
+- All GHL sub-accounts were deleted on 2026-09-27, including primary location `EK9R8WiuBqQCdvZM2WQI`.
+- On docker-apps `/opt/services/aspendora-matomo/.env`: removed `ASPENDORA_GHL_TOKEN` and `ASPENDORA_GHL_LOCATION_ID` (backup `.env.bak-pre-ghl-removal-20260927`), then recreated `matomo-web`.
+- Verified: both vars are now empty in the container, `GhlClient::enabled()` is false, and `/matomo.js` returns 200. The EspoCRM half of AspendoraIdentity is unaffected.
+- Rollback: restore the .env backup and run `docker compose -f docker-compose.prod.yml up -d --no-deps matomo-web` (pointless now that the location is gone).
+
+## 2026-10-01 ~16:54 CDT — AspendoraSearchKeywords 1.1.0: Bing Webmaster import (code + test only, NOT deployed)
+- **Goal:** extend the GSC-only plugin to also import Bing Webmaster keywords, pages, daily crawl stats and crawl issues.
+- **Files:** `plugins/AspendoraSearchKeywords/` — new `BingClient.php`, `Commands/ImportBing.php`, `Updates/1.1.0.php`,
+  `Reports/GetBingKeywords.php`, `GetBingPages.php`, `GetBingCrawlStats.php`, `GetBingCrawlIssues.php`; changed
+  `AspendoraSearchKeywords.php` (4 new tables in idempotent install), `Importer.php` (`importBing()`; optional 3rd ctor arg),
+  `Tasks.php` (GSC then Bing, each isolated in try/catch), `API.php` (5 new methods; GSC methods untouched),
+  `plugin.json` (1.1.0), `lang/en.json` (GSC report label now "Search Keywords (Google)"). `docs/secrets-required.md` updated.
+- **Tests (VM 301, scratch `/tmp/bing-test` + php:8.2-cli + throwaway mariadb:11 on a private network; all removed after):**
+  php -l clean on all 13 files; live BingClient: QueryStats 364 rows, PageStats 289, CrawlStats 182, CrawlIssues 327;
+  install x2 + Updates_1_1_0 OK; importBing x2 idempotent (same row counts); unverified site → logged error, other sites/datasets continue;
+  API: month Sep-2026 = 33 keywords, single day = 0 rows (expected, weekly buckets), crawl week = 7 rows, issues = 327; uninstall drops all.
+  Key passed via ssh stdin → `docker run -e` (never in argv, files or output).
+- **Next:** deploy (image rebuild), set `ASPENDORA_BING_API_KEY` + `ASPENDORA_BING_SITE_MAP` in host .env, `./console core:update --yes`,
+  `./console aspendora-bing:import`, then IT Glue runbook update.
+
+## 2026-10-01 ~17:05 CDT: SEO monitoring deployed (AspendoraSiteAudit 1.0.0 + AspendoraSearchKeywords 1.1.0 Bing + Insights)
+- Requested in the aspendora-website session (Lacy approved "yes": site audit + Bing in Matomo). Plan and phase record: ~/code/aspendora-website/docs/app-build-progress.md Phase 9.
+- NEW plugins/AspendoraSiteAudit:
+  - framework-free Crawler/Analyzer (same thresholds as the website's check-seo.mjs);
+  - run/issue/page tables, keeping 26 runs per site;
+  - API getIssueSummary/getIssues/getPages/getRuns and 4 reports under Behaviour › Site Audit;
+  - `aspendora-audit:run`; the weekly task is a fallback with a 6-day skip and a 2 h lock.
+- Agent tests on VM 301 (php:8.2-cli): lint, 23 seeded defects detected, live crawl, glue checks against a throwaway MariaDB.
+- AspendoraInsights:
+  - StatsCollector adds `bing_keywords` (range last14) and `site_audit` (latest summary);
+  - the Digest prompt mentions both and must name new audit errors in "Do this next".
+- Deploy (VM 301):
+  - .env backup `.env.bak-pre-seo-20261001`; added BING_API_KEY (from Keeper BING_WEBMASTER_API_KEY, piped over ssh stdin), BING_SITE_MAP, AUDIT_SITE_MAP, AUDIT_MAX_PAGES=2000, AUDIT_ORPHAN_OK (the 10 campaign pages for site 1);
+  - compose from vultr-proxmox; rsync without --delete (server-only bundle.js.bak-* files kept); build; recreate with renew-anon-volumes;
+  - `core:update` (1.1.0 tables were already present: plugin updates run on first web hit); `plugin:activate AspendoraSiteAudit`; clear-caches.
+- First runs:
+  - Bing: site 1 364 keywords / 289 pages / 182 crawl days / 327 crawl issues; site 2 14 / 15 / 96 / 0.
+  - Audit: site 1 144 URLs, 0/0/0 in 0.5 s; site 2 31 URLs, 18 errors (11 descriptions >160, 7 titles >60) + 1 warning (two H1s on /resources/compliance-checklist/).
+- Fix after deploy: the raw API sorted the summary descending (warnings before errors). Set `defaultSortOrderDesc = false` on 3 reports, redeployed, verified.
+- Cron: /etc/cron.d/aspendora-site-audit, Mon 11:15 UTC (06:15 CDT), log /var/log/aspendora-site-audit.log. The VM is UTC; CRON_TZ was removed.
+- UI rendering could not be checked headlessly: Matomo refuses super-user tokens for widget/controller rendering. Data is verified via the API, and widgets are registered (API.getWidgetMetadata). Lacy to glance at Behaviour › Site Audit.
+- Note: these docs commits also include the 2026-09-27 GHL-removal notes that were uncommitted from an earlier session.

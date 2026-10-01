@@ -1,10 +1,24 @@
 {
     "AspendoraSearchKeywords": {
-        "SearchKeywords": "Search Keywords (GSC)",
+        "SearchKeywords": "Search Keywords (Google)",
         "Keyword": "Keyword",
         "Clicks": "Clicks",
         "Impressions": "Impressions",
         "AvgPosition": "Avg. Position",
-        "ReportDocumentation": "Google Search Console keyword performance imported daily. Clicks and impressions are summed over the selected period; average position is impression-weighted. GSC data lags about 3 days behind."
+        "ReportDocumentation": "Google Search Console keyword performance imported daily. Clicks and impressions are summed over the selected period; average position is impression-weighted. GSC data lags about 3 days behind.",
+        "BingKeywords": "Search Keywords (Bing)",
+        "BingKeywordsReport": "Bing Keywords",
+        "BingKeywordsDocumentation": "Bing Webmaster Tools keyword performance, imported daily. Bing only publishes keyword stats in weekly buckets: a week is included when its bucket date falls inside the selected period, so a single day (or a short range with no bucket date) will usually show nothing - use week, month or year. Clicks and impressions are summed; average position is impression-weighted.",
+        "BingPagesReport": "Bing Top Pages",
+        "BingPagesDocumentation": "Bing Webmaster Tools per-page search performance (weekly buckets, same rules as Bing Keywords). Clicks and impressions are summed over the period; average position is impression-weighted.",
+        "Page": "Page",
+        "BingCrawl": "Bing Crawl",
+        "BingCrawlStatsReport": "Bing Crawl Stats",
+        "BingCrawlStatsDocumentation": "Daily Bing crawl counters for the selected period, one row per day: pages crawled, URLs in the Bing index, inbound links, HTTP status counts, crawl errors and URLs blocked by robots.txt. Values are Bing's daily figures and are not summed.",
+        "BingCrawlIssuesReport": "Bing Crawl Issues",
+        "BingCrawlIssuesDocumentation": "The current list of URLs Bing reports crawl problems for (redirects, 4xx/5xx, robots.txt blocks, DNS or timeout errors). This is the latest snapshot and does not change with the selected date; it is replaced on every daily import.",
+        "Day": "Day",
+        "Url": "URL",
+        "Issues": "Issues"
     }
 }
